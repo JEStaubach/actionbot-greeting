@@ -1,0 +1,18 @@
+name: 'actionbot-greeting'
+description: 'Greet issue submitter'
+branding:
+  icon: 'move'  
+  color: 'purple'
+inputs:
+  action-token:
+    description: 'Token for the repo. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
+    required: true
+  project-url:
+    description: 'The url of the project'
+    required: true
+  column-name:
+    description: 'The column that the card should end up'
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'
