@@ -8,7 +8,7 @@ const addComment = async (octokit, issuesContext, comment) => {
   await octokit.issues.createComment({
     owner: issuesContext.payload.repository.owner.login,
     repo: issuesContext.payload.repository.name,
-    issueNumber: issuesContext.issue.number,
+    issue_number: issuesContext.issue.number,
     body: comment,
   });
   console.log(`     - github.issues.createComment completed`);
