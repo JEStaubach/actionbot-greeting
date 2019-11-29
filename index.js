@@ -1,6 +1,6 @@
-import * as github from "@actions/github";
-import * as core from "@actions/core";
-import * as graphql from "@octokit/graphql";
+import github from "@actions/github";
+import core from "@actions/core";
+import graphql from "@octokit/graphql";
 
 const addComment = async (issuesContext, comment) => {
   console.log(`   ~ addComment: comment="${comment}"`)
