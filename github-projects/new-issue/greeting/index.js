@@ -10,7 +10,7 @@ async function run() {
   const context = github.context;
   
   console.log(
-    `>> Action triggered by issue #${context.issue.number}`,
+    `>> Action triggered by issue #${context.issue.number}\n`,
     `   << Comment on issue with a greeting: "${commentText}"`,
   );
   await actions.githubProjects.addComment(octokit, context, commentText);
