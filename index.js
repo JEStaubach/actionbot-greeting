@@ -1,12 +1,16 @@
-import github from "@actions/github";
-import core from "@actions/core";
-import graphql from "@octokit/graphql";
+const github = require("@actions/github");
+const core = require("@actions/core");
+const graphql = require("@octokit/graphql");
 
-const addComment = async (issuesContext, comment) => {
+const addComment = async (octokit, issuesContext, comment) => {
   console.log(`   ~ addComment: comment="${comment}"`)
-  const issueComment = issuesContext.issue({ body: comment });
   console.log(`     + github.issues.createComment`);
-  await issuesContext.github.issues.createComment(issueComment);
+  await octokit.issues.createComment({
+    owner: issuesContext.payload.repository.owner.login,
+    repo: issuesContext.payload.repository.name,
+    issueNumber: issuesContext.issue.number,
+    body: comment,
+  });
   console.log(`     - github.issues.createComment completed`);
 };
 
@@ -69,7 +73,7 @@ async function run() {
     `   << Comment on issue with a greeting: "${commentText}"`,
     `   << Create card on project board "${boardName}" in column "${columnName}"`
   );
-  await addComment(context, commentText);
+  await addComment(octoKit, context, commentText);
   await createCardFromIssue(context, { boardName, columnName });
 }
 
