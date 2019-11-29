@@ -1,21 +1,21 @@
-const github = require("@actions/github");
-const core = require("@actions/core");
-const graphql = require("@octokit/graphql");
+import * as github from "@actions/github";
+import * as core from "@actions/core";
+import * as graphql from "@octokit/graphql";
 
 const addComment = async (issuesContext, comment) => {
   console.log(`   ~ addComment: comment="${comment}"`)
-  const issueComment = github.issue({ body: comment });
+  const issueComment = issuesContext.issue({ body: comment });
   console.log(`     + github.issues.createComment`);
-  await github.issues.createComment(issueComment);
+  await issuesContext.github.issues.createComment(issueComment);
   console.log(`     - github.issues.createComment completed`);
 };
 
 const getProjectBoard = async (context, boardName) => {
   console.log(`   ~ getProjectBoard: boardName="${boardName}"`);
   console.log(`     + github.projects.listForRepo`);
-  const projects = await github.projects.listForRepo({
-    owner: context.repository.owner.login,
-    repo: context.repository.name,
+  const projects = await context.github.projects.listForRepo({
+    owner: context.payload.repository.owner.login,
+    repo: context.payload.repository.name,
   });
   console.log(`     - github.projects.listForRepo completed`);
   const [board] = projects.data.filter(project => project.name === boardName);
@@ -26,7 +26,7 @@ const getProjectBoard = async (context, boardName) => {
 const getBoardColumns = async (context, board) => {
   console.log(`   ~ getBoardColumns: board.id=${board.id}`);
   console.log(`     + github.projects.listColumns`);
-  const boardColumns = await github.projects.listColumns({ project_id: board.id });
+  const boardColumns = await context.github.projects.listColumns({ project_id: board.id });
   console.log(`     - github.projects.listColumns completed`);
   return boardColumns;
 };
@@ -48,9 +48,9 @@ const createCardFromIssue = async (context, { boardName, columnName }) => {
   console.log(`   ~ createCardFromIssue: boardName="${boardName}" columnName="${columnName}"`);
   const column = await getBoardColumnByNames(context, boardName, columnName);
   console.log(`     + github.projects.createCard`);
-  await github.projects.createCard({
+  await context.github.projects.createCard({
     column_id: column.id,
-    content_id: context.issue.id,
+    content_id: context.payload.issue.id,
     content_type: 'Issue',
   });
   console.log(`     - github.projects.createCard completed`);
