@@ -7,11 +7,14 @@ inputs:
   action-token:
     description: 'Token for the repo. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
     required: true
-  project-url:
-    description: 'The url of the project'
+  comment-text:
+    description: 'Text to include in comments when someone opens an issue'
+    require: true
+  board-name:
+    description: 'The name of the project board'
     required: true
   column-name:
-    description: 'The column that the card should end up'
+    description: 'The column that the card should end up on'
     required: true
 runs:
   using: 'node12'
