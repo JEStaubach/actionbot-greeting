@@ -73,7 +73,7 @@ async function run() {
     `   << Comment on issue with a greeting: "${commentText}"`,
     `   << Create card on project board "${boardName}" in column "${columnName}"`
   );
-  await addComment(octoKit, context, commentText);
+  await addComment(octokit, context, commentText);
   await createCardFromIssue(context, { boardName, columnName });
 }
 
