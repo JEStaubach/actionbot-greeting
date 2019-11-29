@@ -1,7 +1,7 @@
 const github = require("@actions/github");
 const core = require("@actions/core");
 const graphql = require("@octokit/graphql");
-const actions = require("@JEStaubach/actions");
+const actions = require("@jestaubach/actions");
 
 async function run() {
   const myToken = core.getInput("action-token");
