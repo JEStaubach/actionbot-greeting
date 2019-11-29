@@ -1,18 +1,7 @@
 const github = require("@actions/github");
 const core = require("@actions/core");
 const graphql = require("@octokit/graphql");
-
-const addComment = async (octokit, issuesContext, comment) => {
-  console.log(`   ~ addComment: comment="${comment}"`)
-  console.log(`     + github.issues.createComment`);
-  await octokit.issues.createComment({
-    owner: issuesContext.payload.repository.owner.login,
-    repo: issuesContext.payload.repository.name,
-    issue_number: issuesContext.issue.number,
-    body: comment,
-  });
-  console.log(`     - github.issues.createComment completed`);
-};
+const actions = require("@JEStaubach/actions");
 
 async function run() {
   const myToken = core.getInput("action-token");
@@ -24,7 +13,7 @@ async function run() {
     `>> Action triggered by issue #${context.issue.number}`,
     `   << Comment on issue with a greeting: "${commentText}"`,
   );
-  await addComment(octokit, context, commentText);
+  await actions.githubProjects.addComment(octokit, context, commentText);
 }
 
 run()
