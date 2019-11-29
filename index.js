@@ -14,10 +14,10 @@ const addComment = async (octokit, issuesContext, comment) => {
   console.log(`     - github.issues.createComment completed`);
 };
 
-const getProjectBoard = async (context, boardName) => {
+const getProjectBoard = async (octokit, context, boardName) => {
   console.log(`   ~ getProjectBoard: boardName="${boardName}"`);
   console.log(`     + github.projects.listForRepo`);
-  const projects = await context.github.projects.listForRepo({
+  const projects = await octokit.projects.listForRepo({
     owner: context.payload.repository.owner.login,
     repo: context.payload.repository.name,
   });
@@ -27,32 +27,32 @@ const getProjectBoard = async (context, boardName) => {
 };
 
 
-const getBoardColumns = async (context, board) => {
+const getBoardColumns = async (octokit, context, board) => {
   console.log(`   ~ getBoardColumns: board.id=${board.id}`);
   console.log(`     + github.projects.listColumns`);
-  const boardColumns = await context.github.projects.listColumns({ project_id: board.id });
+  const boardColumns = await octokit.projects.listColumns({ project_id: board.id });
   console.log(`     - github.projects.listColumns completed`);
   return boardColumns;
 };
 
-const getBoardColumnsByBoardName = async (context, boardName) => {
+const getBoardColumnsByBoardName = async (octokit, context, boardName) => {
   console.log(`   ~ getBoardColumnsByBoardName: boardName="${boardName}"`);
-  const board = await getProjectBoard(context, boardName);
-  return await getBoardColumns(context, board);
+  const board = await getProjectBoard(octokit, context, boardName);
+  return await getBoardColumns(octokit, context, board);
 };
 
-const getBoardColumnByNames = async (context, boardName, columnName) => {
+const getBoardColumnByNames = async (octokit, context, boardName, columnName) => {
   console.log(`   ~ getBoardColumnByNames: boardName="${boardName}" columnName="${columnName}"`);
-  const columns = await getBoardColumnsByBoardName(context, boardName);
+  const columns = await getBoardColumnsByBoardName(octokit, context, boardName);
   const [boardColumn] = columns.data.filter(column => column.name === columnName);
   return boardColumn;
 };
 
-const createCardFromIssue = async (context, { boardName, columnName }) => {
+const createCardFromIssue = async (octokit, context, { boardName, columnName }) => {
   console.log(`   ~ createCardFromIssue: boardName="${boardName}" columnName="${columnName}"`);
-  const column = await getBoardColumnByNames(context, boardName, columnName);
+  const column = await getBoardColumnByNames(octokit, context, boardName, columnName);
   console.log(`     + github.projects.createCard`);
-  await context.github.projects.createCard({
+  await octokit.projects.createCard({
     column_id: column.id,
     content_id: context.payload.issue.id,
     content_type: 'Issue',
@@ -74,7 +74,7 @@ async function run() {
     `   << Create card on project board "${boardName}" in column "${columnName}"`
   );
   await addComment(octokit, context, commentText);
-  await createCardFromIssue(context, { boardName, columnName });
+  await createCardFromIssue(octokit, context, { boardName, columnName });
 }
 
 run()
