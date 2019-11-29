@@ -11,7 +11,7 @@ async function run() {
   const context = github.context;
   
   console.log(
-    `>> Action triggered by issue #${context.issue.number}`,
+    `>> Action triggered by issue #${context.issue.number}\n`,
     `   << Create card on project board "${boardName}" in column "${columnName}"`
   );
   await actions.githubProjects.createCardFromIssue(octokit, context, { boardName, columnName });
