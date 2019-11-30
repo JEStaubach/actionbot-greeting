@@ -1,0 +1,12 @@
+name: 'actions.github-projects.unassign-issue.move-unassigned-issue-card'
+description: 'Determine appropriate board column and move unassigned issue card to it'
+branding:
+  icon: 'move'  
+  color: 'purple'
+inputs:
+  action-token:
+    description: 'Token for the repo. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'
