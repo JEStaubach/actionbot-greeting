@@ -1,3 +1,5 @@
+const conventions = require('./config/conventions');
+
 const addComment = async (octokit, context, comment) => {
   console.log(`   ~ addComment: comment="${comment}"`)
   console.log(`     + github.issues.createComment`);

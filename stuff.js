@@ -99,20 +99,6 @@ module.exports = app => {
 
   const locked = {};
 
-  const conventions = {
-    bug: 'bug',
-    build: 'build',
-    chore: 'chore',
-    ci: 'ci',
-    documentation: 'docs',
-    enhancement: 'feat',
-    performance: 'perf',
-    refactor: 'refactor',
-    revert: 'revert',
-    style: 'style',
-    test: 'test',
-    question: 'question',
-  };
 
   const getLock = id => {
     app.log(`getLock`);
