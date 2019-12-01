@@ -67,7 +67,7 @@ const getProjectBoards = async (octokit, context) => {
 
 const getProjectBoard = async (octokit, context, boardName) => {
   console.log(`   ~ getProjectBoard: boardName="${boardName}"`);
-  const boards = getProjectBoards(octokit, context);
+  const boards = await getProjectBoards(octokit, context);
   const [board] = boards ? boards.filter(project => project.name === boardName) : [undefined];
   return board;
 };
