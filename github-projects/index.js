@@ -62,6 +62,27 @@ const getIssueLabels = (_, context) => {
   return context.payload.issue.labels.map(cur => cur.name);
 };
 
+const getBoardCardsMatchingIssue = async (octokit, context, boardName) => {
+  console.log(`getBoardCardsMatchingIssue`);
+  return await getBoardCardsMatchingIssueNumber(octokit, context, boardName, context.payload.issue.number);
+};
+
+const getBoardCardsMatchingIssueNumber = async (octokit, context, boardName, issueNumber) => {
+  console.log(`getBoardCardsMatchtingIssueNumber`);
+  let allMatchingCards = [];
+  const columns = await getBoardColumnsByBoardName(octokit, context, boardName);
+  for (const column of columns.data) {
+    console.log(`github.projects.listCards`);
+    const cards = await context.github.projects.listCards({ column_id: column.id });
+    const matchingCards = cards.data.filter(card => {
+      const [contentType, contentNumber] = card.content_url.split('/').slice(-2);
+      return contentType === 'issues' && Number(contentNumber) === issueNumber;
+    });
+    allMatchingCards = [...allMatchingCards, ...matchingCards];
+  }
+  return allMatchingCards;
+};
+
 const moveCardsMatchingIssueInBoardToBoardColumnAtPosition = async (
   octokit,
   context,
