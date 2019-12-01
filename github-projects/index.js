@@ -11,7 +11,7 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
     existingBoards.push({board: repoboard, columns: cols});
   }
   for (board in boards) {
-    let matchingBoards = existingBoards.filter( existingboard => (
+    let matchingBoards = existingBoards.filter( existingBoard => (
       existingBoard.board.name === board.board
     ));
     if (!matchingBoards) {
