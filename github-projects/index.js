@@ -10,7 +10,7 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
   const existingBoards = [];
   for (repoBoard of repoBoards) {
     console.log(`repoBoard: ${JSON.stringify(repoBoard)}`);
-    const cols = await getBoardColumns(octokit, context, repoBoard.name);
+    const cols = await getBoardColumns(octokit, context, repoBoard);
     existingBoards.push({board: repoBoard, columns: cols});
   }
   console.log(`existing boards: ${JSON.stringify(existingBoards)}`);
