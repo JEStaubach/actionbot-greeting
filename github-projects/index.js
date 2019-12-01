@@ -4,13 +4,13 @@ const { defaultBoards } = require('./config/default-boards');
 const createOnceBoards = async (octokit, context, boardsParam) => {
   const boards = boardsParam ? boardsParam : defaultBoards;
   console.log(`   ~ createOnceBoards: boards=${JSON.stringify(boards)}`);
-  const existingBoards = getProjectBoards(octokit, context).map(existingBoard => (
-    {
-      board: existingBoard,
-      columns: getBoardColumns(octokit, context, existingBoard.name),
-    }
-  ));
-  boards.forEach(board => {
+  const repoBoards = await getProjectBoards(octokit, context);
+  const existingBoards = [];
+  for (repoBoard in repoBoards) {
+    const cols = await getBoardColumns(octokit, context, existingBoard.name);
+    existingBoards.push({board: repoboard, columns: cols});
+  }
+  for (board in boards) {
     let matchingBoards = existingBoards.filter( existingboard => (
       existingBoard.board.name === board.board
     ));
@@ -23,21 +23,21 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
       });
       matchingBoards = [createdBoard.data];
     }
-    matchingBoards.forEach(matchingBoard => {
-      board.columns.forEach(column => {
+    for (mathingBoard in matchingBoards) {
+      for (column in board.columns) {
         let neededColumns = matchingBoard.columns.filter( existingColumn => (
           existingColumn.name !== column.column
         ));
-        neededColumns.forEach(neededColumn => {
+        for (_ in neededColumns) {
           console.log(`creating column ${column.column} in board ${matchingBoard.name}`);
           await octokit.projects.createColumn({
             project_id: matchingBoard.id,
             name: column.column,
           });
-        });
-      });
-    });
-  });
+        };
+      };
+    };
+  };
 }
 
 const addComment = async (octokit, context, comment) => {
