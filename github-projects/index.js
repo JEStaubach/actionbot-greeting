@@ -52,7 +52,7 @@ const addComment = async (octokit, context, comment) => {
   console.log(`     - github.issues.createComment completed`);
 }
 
-const getProjectBoards = (octokit, context) => {
+const getProjectBoards = async (octokit, context) => {
   console.log(`   ~ getProjectBoards`);
   console.log(`     + octokit.projects.listForRepo`);
   const projects = await octokit.projects.listForRepo({
