@@ -7,8 +7,8 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
   const repoBoards = await getProjectBoards(octokit, context);
   const existingBoards = [];
   for (repoBoard in repoBoards) {
-    const cols = await getBoardColumns(octokit, context, existingBoard.name);
-    existingBoards.push({board: repoboard, columns: cols});
+    const cols = await getBoardColumns(octokit, context, repoBoard.name);
+    existingBoards.push({board: repoBoard, columns: cols});
   }
   for (board in boards) {
     let matchingBoards = existingBoards.filter( existingBoard => (
