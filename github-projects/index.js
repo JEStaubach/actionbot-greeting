@@ -24,7 +24,7 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
       });
       matchingBoards = [createdBoard.data];
     }
-    for (mathingBoard in matchingBoards) {
+    for (matchingBoard in matchingBoards) {
       for (column in board.columns) {
         let neededColumns = matchingBoard.columns.filter( existingColumn => (
           existingColumn.name !== column.column
