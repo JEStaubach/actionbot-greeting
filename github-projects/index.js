@@ -1,4 +1,43 @@
 const conventions = require('./config/conventions');
+const { defaultBoards } = require('./config/default-boards');
+
+const createOnceBoards = async (octokit, context, boards) => {
+  console.log(`   ~ createOnceBoards: boards=${JSON.stringify(boards)}`);
+  const existingBoards = getProjectBoards(octokit, context).map(existingBoard => (
+    {
+      board: existingBoard,
+      columns: getBoardColumns(octokit, context, existingBoard.name),
+    }
+  ));
+  boards.forEach(board => {
+    let matchingBoards = existingBoards.filter( existingboard => (
+      existingBoard.board.name === board.board
+    ));
+    if (!matchingBoards) {
+      console.log(`createing board ${board.board}`);
+      const createdBoard = await octokit.projects.createForRepo({
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        name: board.board,
+      });
+      matchingBoards = [createdBoard.data];
+    }
+    matchingBoards.forEach(matchingBoard => {
+      board.columns.forEach(column => {
+        let neededColumns = matchingBoard.columns.filter( existingColumn => (
+          existingColumn.name !== column.column
+        ));
+        neededColumns.forEach(neededColumn => {
+          console.log(`creating column ${column.column} in board ${matchingBoard.name}`);
+          await octokit.projects.createColumn({
+            project_id: matchingBoard.id,
+            name: column.column,
+          });
+        });
+      });
+    });
+  });
+}
 
 const addComment = async (octokit, context, comment) => {
   console.log(`   ~ addComment: comment="${comment}"`)
@@ -10,17 +49,24 @@ const addComment = async (octokit, context, comment) => {
     body: comment,
   });
   console.log(`     - github.issues.createComment completed`);
-};
+}
 
-const getProjectBoard = async (octokit, context, boardName) => {
-  console.log(`   ~ getProjectBoard: boardName="${boardName}"`);
+const getProjectBoards = (octokit, context) => {
+  console.log(`   ~ getProjectBoards`);
   console.log(`     + octokit.projects.listForRepo`);
   const projects = await octokit.projects.listForRepo({
     owner: context.payload.repository.owner.login,
     repo: context.payload.repository.name,
   });
   console.log(`     - octokit.projects.listForRepo completed`);
-  const [board] = projects.data.filter(project => project.name === boardName);
+  console.log(`       boards: ${JSON.stringify(projects.data.map(board => board.name))}`);
+  return projects.data ? projects.data : [];
+}
+
+const getProjectBoard = async (octokit, context, boardName) => {
+  console.log(`   ~ getProjectBoard: boardName="${boardName}"`);
+  const boards = getProjectBoards(octokit, context);
+  const [board] = boards ? boards.filter(project => project.name === boardName) : [undefined];
   return board;
 };
 
@@ -342,4 +388,5 @@ module.exports = {
   addComment,
   createCardFromIssue,
   moveCardsMatchingIssueToCorrectColumn,
+  createOnceBoards,
 };
