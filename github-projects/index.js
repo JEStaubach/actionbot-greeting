@@ -3,7 +3,7 @@ const { defaultBoards } = require('./config/default-boards');
 
 const createOnceBoards = async (octokit, context, boardsParam) => {
   // const boards = boardsParam ? boardsParam : defaultBoards;
-  const boards = defaultsBoards;
+  const boards = defaultBoards;
   console.log(`   ~ createOnceBoards: boards=${JSON.stringify(boards)}`);
   const repoBoards = await getProjectBoards(octokit, context);
   const existingBoards = [];
