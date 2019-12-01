@@ -20,7 +20,7 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
       existingBoard.board.name === board.board
     ));
     console.log(`matchingBoards: ${JSON.stringify(matchingBoards)}`);
-    if (!matchingBoards) {
+    if (!matchingBoards.length > 0) {
       console.log(`creating board ${board.board}`);
       const createdBoard = await octokit.projects.createForRepo({
         owner: context.payload.repository.owner.login,
