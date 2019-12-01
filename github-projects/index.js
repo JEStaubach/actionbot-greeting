@@ -38,9 +38,9 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
         ));
         for (neededColumn of neededColumns) {
           console.log(`neededColumn: ${JSON.stringify(neededColumn)}`);
-          console.log(`creating column ${column.column} in board ${matchingBoard.name}`);
+          console.log(`creating column ${column.column} in board ${matchingBoard.board.name}`);
           await octokit.projects.createColumn({
-            project_id: matchingBoard.id,
+            project_id: matchingBoard.board.id,
             name: column.column,
           });
         };
