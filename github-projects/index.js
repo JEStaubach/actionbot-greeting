@@ -27,7 +27,8 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
         repo: context.payload.repository.name,
         name: board.board,
       });
-      return createOnceBoards(octokit, context, boardsParam);
+      await createOnceBoards(octokit, context, boardsParam);
+      return;
     }
     for (matchingBoard of matchingBoards) {
       console.log(`matchingBoard: ${JSON.stringify(matchingBoard)}`);
