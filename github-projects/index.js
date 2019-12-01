@@ -11,7 +11,7 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
   for (repoBoard of repoBoards) {
     console.log(`repoBoard: ${JSON.stringify(repoBoard)}`);
     const cols = await getBoardColumns(octokit, context, repoBoard);
-    existingBoards.push({board: repoBoard, columns: cols});
+    existingBoards.push({board: repoBoard, columns: cols.data});
   }
   console.log(`existing boards: ${JSON.stringify(existingBoards)}`);
   for (board of boards) {
@@ -32,7 +32,7 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
     for (matchingBoard of matchingBoards) {
       console.log(`matchingBoard: ${JSON.stringify(matchingBoard)}`);
       for (column of board.columns) {
-        console.log(`column: ${column}`);
+        console.log(`column: ${JSON.stringify(column)}`);
         let neededColumns = matchingBoard.columns.filter( existingColumn => (
           existingColumn.name !== column.column
         ));
