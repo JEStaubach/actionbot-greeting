@@ -18,7 +18,7 @@ const createOnceLabels = async (octokit, context, labelsParam) => {
   const labels = defaultLabels;
   console.log(`   ~ createOnceLabels: labels=${JSON.stringify(labels)}`);
   const repoLabels = await getProjectLabels(octokit, context);
-  console.log(`repLabels: ${JSON.stringify(repoLabels)}`);
+  console.log(`repoLabels: ${JSON.stringify(repoLabels)}`);
   for (repoLabel of repoLabels) {
     const matchingLabels = labels.filter(label => label.name === repoLabel.name);
     if (matchingLabels.length === 0) {
@@ -43,6 +43,8 @@ const createOnceLabels = async (octokit, context, labelsParam) => {
         description: label.description,
       });
     } else {
+      console.log(`ml: ${matchingLabels[0].name}, ${matchingLabels[0].color}, ${matchingLabels[0].description}`);
+      console.log(`ls: ${label.name}, ${label.color}, ${label.description}`);
       if (matchingLabels[0].color !== label.color || matchingLabels[0].description !== label.description) {
         console.log(`updating label ${label.name}`);
         octokit.issues.updateLabel({
@@ -55,6 +57,7 @@ const createOnceLabels = async (octokit, context, labelsParam) => {
       }
     }
   }
+  console.log(testError);
 };
 
 const createOnceBoards = async (octokit, context, boardsParam) => {
