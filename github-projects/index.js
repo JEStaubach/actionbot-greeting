@@ -512,7 +512,8 @@ const adjustCommentedLabel = async (octokit, context) => {
 };
 
 const addConventionalTitle = async (context, issueType) => {
-  console.log(`addCOnventionalTitle`);
+  console.log(`addConventionalTitle`);
+  console.log('context: ${JSON.stringify(context)}');
   let issueTitle = context.payload.issue.title;
   Object.values(conventions).map(cur => {
     const re = `^${cur}\h*[:,\.\h]+\h*`;
