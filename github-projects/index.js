@@ -511,7 +511,7 @@ const adjustCommentedLabel = async (octokit, context) => {
   }
 };
 
-const addConventionalTitle = async (context, issueType) => {
+const addConventionalTitle = async (octokit, context, issueType) => {
   console.log(`addConventionalTitle`);
   console.log(`context: ${JSON.stringify(context)}`);
   let issueTitle = context.payload.issue.title;
