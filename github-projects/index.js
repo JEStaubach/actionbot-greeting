@@ -558,7 +558,7 @@ const removeLabels = async (_, context, labelsToRemove) => {
 const adjustLabelsToConventions = async (octokit, context) => {
   console.log(`on issues.labeled`);
   console.log('issues.labeled');
-  const issueLabels = getIssueLabels(context);
+  const issueLabels = getIssueLabels(octokit, context);
   if (Object.keys(conventions).includes(context.payload.label.name)) {
     const otherConventionLabels = Object.keys(conventions)
       .filter(convention => convention !== context.payload.label.name)
@@ -571,7 +571,6 @@ const adjustLabelsToConventions = async (octokit, context) => {
 const adjustTitleToConventions = async (octokit, context) => {
   console.log(`on issues.labeled`);
   console.log('issues.labeled');
-  const issueLabels = getIssueLabels(context);
   if (Object.keys(conventions).includes(context.payload.label.name)) {
     console.log('<< convention label');
     await addConventionalTitle(octokit, context, context.payload.label.name);
