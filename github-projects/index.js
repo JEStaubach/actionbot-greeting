@@ -415,7 +415,7 @@ const isCardMatchingIssueInBoardColumn = async (octokit, context, boardName, col
   return false;
 };
 
-const addLabels = async (context, labels) => {
+const addLabels = async (octokit, context, labels) => {
   console.log(`addLabels`);
   console.log(`github.issues.addLabels`);
   await octokit.issues.addLabels({
