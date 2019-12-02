@@ -555,7 +555,7 @@ const removeLabels = async (_, context, labelsToRemove) => {
   }
 };
 
-const adjustLabelsToConventions = (octokit, context) => {
+const adjustLabelsToConventions = async (octokit, context) => {
   console.log(`on issues.labeled`);
   console.log('issues.labeled');
   const issueLabels = getIssueLabels(context);
@@ -568,7 +568,7 @@ const adjustLabelsToConventions = (octokit, context) => {
   }
 }
 
-const adjustTitleToConventions = (octokit, context) => {
+const adjustTitleToConventions = async (octokit, context) => {
   console.log(`on issues.labeled`);
   console.log('issues.labeled');
   const issueLabels = getIssueLabels(context);
