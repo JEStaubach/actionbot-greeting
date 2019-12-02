@@ -1,5 +1,30 @@
 const conventions = require('./config/conventions');
 const { defaultBoards } = require('./config/default-boards');
+const { defaultLabels } = require('./config/default-labels');
+
+const getProjectLabels = async (octokit, context) => {
+  console.log(`   ~ getProjectLabels`);
+  console.log(`     + octokit.projects.listLabelsForRepo`);
+  const labels = await octokit.projects.listLabelsForRepo({
+    owner: context.payload.repository.owner.login,
+    repo: context.payload.repository.name,
+  });
+  console.log(`     - octokit.projects.listLabelsForRepo completed`);
+  console.log(`       labels: ${JSON.stringify(labels)}`);
+  return labels.data ? labels.data : [];
+}
+
+const createOnceLabels = async (octokit, context, labelsParam) => {
+  const labels = defaultLabels;
+  console.log(`   ~ createOnceLabels: labels=${JSON.stringify(labels)}`);
+  const repoLabels = await getProjectLabels(octokit, context);
+  console.log(`repLabels: ${JSON.stringify(repoLabels)}`);
+  const existingLabels = [];
+  for (repoLabel of repoLabels) {
+    console.log(`repoLabel: ${JSON.stringify(repoLabel)}`);
+  }
+  console.log(testError);
+};
 
 const createOnceBoards = async (octokit, context, boardsParam) => {
   // const boards = boardsParam ? boardsParam : defaultBoards;
@@ -458,4 +483,5 @@ module.exports = {
   moveCardsMatchingIssueToCorrectColumn,
   createOnceBoards,
   adjustCommentedLabel,
+  createOnceLabels,
 };
