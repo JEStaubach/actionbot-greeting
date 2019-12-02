@@ -4,12 +4,12 @@ const { defaultLabels } = require('./config/default-labels');
 
 const getProjectLabels = async (octokit, context) => {
   console.log(`   ~ getProjectLabels`);
-  console.log(`     + octokit.projects.listLabelsForRepo`);
-  const labels = await octokit.projects.listLabelsForRepo({
+  console.log(`     + octokit.issues.listLabelsForRepo`);
+  const labels = await octokit.issues.listLabelsForRepo({
     owner: context.payload.repository.owner.login,
     repo: context.payload.repository.name,
   });
-  console.log(`     - octokit.projects.listLabelsForRepo completed`);
+  console.log(`     - octokit.issues.listLabelsForRepo completed`);
   console.log(`       labels: ${JSON.stringify(labels)}`);
   return labels.data ? labels.data : [];
 }
