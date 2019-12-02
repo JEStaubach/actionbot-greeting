@@ -50,7 +50,8 @@ const createOnceLabels = async (octokit, context, labelsParam) => {
         await octokit.issues.updateLabel({
           owner: context.payload.repository.owner.login,
           repo: context.payload.repository.name,
-          name: label.name,
+          current_name: label.name,
+          new_name: label.name,
           color: label.color,
           description: label.description,
         });
