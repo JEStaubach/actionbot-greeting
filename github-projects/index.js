@@ -19,9 +19,41 @@ const createOnceLabels = async (octokit, context, labelsParam) => {
   console.log(`   ~ createOnceLabels: labels=${JSON.stringify(labels)}`);
   const repoLabels = await getProjectLabels(octokit, context);
   console.log(`repLabels: ${JSON.stringify(repoLabels)}`);
-  const existingLabels = [];
   for (repoLabel of repoLabels) {
-    console.log(`repoLabel: ${JSON.stringify(repoLabel)}`);
+    const matchingLabels = labels.filter(label => label.name === repoLabel.name);
+    if (matchingLabels.length === 0) {
+      console.log(`deleting label ${repoLabel.name}`);
+      octokit.issues.deleteLabel({
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        name: repoLabel.name,
+      })
+    }
+  }
+  for (label of labels) {
+    console.log(`label: ${JSON.stringify(label)}`);
+    const matchingLabels = repoLabels.filter(repoLabel => (label.name === repoLabel.name));
+    if (matchingLabels.length === 0) {
+      console.log(`creating label ${label.name}`);
+      octokit.issues.createLabel({
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        name: label.name,
+        color: label.color,
+        description: label.description,
+      });
+    } else {
+      if (matchingLabels[0].color !== label.color || matchingLabels[0].description !== label.description) {
+        console.log(`updating label ${label.name}`);
+        octokit.issues.updateLabel({
+          owner: context.payload.repository.owner.login,
+          repo: context.payload.repository.name,
+          name: label.name,
+          color: label.color,
+          description: label.description,
+        });
+      }
+    }
   }
   console.log(testError);
 };
