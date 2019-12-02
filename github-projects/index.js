@@ -23,7 +23,7 @@ const createOnceLabels = async (octokit, context, labelsParam) => {
     const matchingLabels = labels.filter(label => label.name === repoLabel.name);
     if (matchingLabels.length === 0) {
       console.log(`deleting label ${repoLabel.name}`);
-      octokit.issues.deleteLabel({
+      await octokit.issues.deleteLabel({
         owner: context.payload.repository.owner.login,
         repo: context.payload.repository.name,
         name: repoLabel.name,
@@ -35,7 +35,7 @@ const createOnceLabels = async (octokit, context, labelsParam) => {
     const matchingLabels = repoLabels.filter(repoLabel => (label.name === repoLabel.name));
     if (matchingLabels.length === 0) {
       console.log(`creating label ${label.name}`);
-      octokit.issues.createLabel({
+      await octokit.issues.createLabel({
         owner: context.payload.repository.owner.login,
         repo: context.payload.repository.name,
         name: label.name,
@@ -47,7 +47,7 @@ const createOnceLabels = async (octokit, context, labelsParam) => {
       console.log(`ls: ${label.name}, ${label.color}, ${label.description}`);
       if (matchingLabels[0].color !== label.color || matchingLabels[0].description !== label.description) {
         console.log(`updating label ${label.name}`);
-        octokit.issues.updateLabel({
+        await octokit.issues.updateLabel({
           owner: context.payload.repository.owner.login,
           repo: context.payload.repository.name,
           name: label.name,
