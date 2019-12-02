@@ -194,7 +194,7 @@ module.exports = app => {
       const [tgtColumn] = columns.data.filter(column => column.name === destColumnName);
       console.log(`github.porjects.moveCard`);
       if (srcBoardName === destBoardName) {
-        await context.github.projects.moveCard({
+        await octokit.projects.moveCard({
           card_id: matchingCard.id,
           position: pos,
           column_id: tgtColumn.id,
@@ -202,12 +202,12 @@ module.exports = app => {
       } else {
         // const [ , contentNumber ] = matchingCard.content_url.split('/').slice(-2);
         // const issueNumber = Number(contentNumber);
-        await context.github.projects.createCard({
+        await octokit.projects.createCard({
           column_id: tgtColumn.id,
           content_id: context.payload.issue.id,
           content_type: 'Issue',
         });
-        await context.github.projects.deleteCard({ card_id: matchingCard.id });
+        await octokit.projects.deleteCard({ card_id: matchingCard.id });
       }
     }
   };
@@ -224,33 +224,11 @@ module.exports = app => {
     );
   };
 
-  const removeLabels = async (_, context, labelsToRemove) => {
-    console.log(`removeLabels`);
-    console.log(`github.issues.listLabelsOnIssue`);
-    const labels = await context.github.issues.listLabelsOnIssue({
-      owner: context.payload.repository.owner.login,
-      repo: context.payload.repository.name,
-      issue_number: context.payload.issue.number,
-    });
-    const labelNames = labels.data.map(cur => cur.name);
-    for (const labelToRemove of labelsToRemove) {
-      if (labelNames.includes(labelToRemove)) {
-        console.log(`remove label ${labelToRemove}`);
-        await context.github.issues.removeLabel({
-          owner: context.payload.repository.owner.login,
-          repo: context.payload.repository.name,
-          number: context.payload.issue.number,
-          name: labelToRemove,
-        });
-      }
-    }
-  };
-
   const findInsertionPoint = async (octokit, context, boardName, columnName) => {
     console.log(`findInsertionPoint`);
     const column = await getBoardColumnByNames(octokit, context, boardName, columnName);
     console.log(`github.projects.listCards`);
-    const cards = await context.github.projects.listCards({ column_id: column.id });
+    const cards = await octokit.projects.listCards({ column_id: column.id });
     const cardsIssues = cards.data.map(card => {
       const [, contentNumber] = card.content_url.split('/').slice(-2);
       return [card.id, Number(contentNumber)];
@@ -259,7 +237,7 @@ module.exports = app => {
     let count = 0;
     for (const [card_id, issueNumber] of cardsIssues) {
       console.log(`github.issues.get`);
-      const issue = await context.github.issues.get({
+      const issue = await octokit.issues.get({
         owner: context.payload.repository.owner.login,
         repo: context.payload.repository.name,
         issue_number: issueNumber,
@@ -278,7 +256,7 @@ module.exports = app => {
     console.log(`addComment`);
     const issueComment = context.issue({ body: comment });
     console.log(`github.issues.createComment`);
-    await context.github.issues.createComment(issueComment);
+    await octokit.issues.createComment(issueComment);
   };
 
   const hasAssignee = issues(_, context) => {
@@ -286,32 +264,11 @@ module.exports = app => {
     return context.payload.issue.assignees.length > 0;
   };
 
-  const addConventionalTitle = async (context, issueType) => {
-    console.log(`addCOnventionalTitle`);
-    let issueTitle = context.payload.issue.title;
-    Object.values(conventions).map(cur => {
-      const re = `^${cur}\h*[:,\.\h]+\h*`;
-      const regex = new RegExp(re, 'i');
-      issueTitle = issueTitle.replace(regex, '');
-    });
-    const title = `${conventions[issueType]}: ${issueTitle}`;
-    console.log(`github.issues.update`);
-    if (issueTitle !== title) {
-      await context.github.issues.update({
-        owner: context.payload.repository.owner.login,
-        repo: context.payload.repository.name,
-        issue_number: context.payload.issue.number,
-        title,
-      });
-    } else {
-      console.log('no change to conventional title');
-    }
-  };
 
   const getBranches = async (_, context) => {
     console.log(`getBranches`);
     console.log(`github.repos.listBranches`);
-    const branches = await context.github.repos.listBranches({
+    const branches = await octokit.repos.listBranches({
       owner: context.payload.repository.owner.login,
       repo: context.payload.repository.name,
     });
@@ -326,7 +283,7 @@ module.exports = app => {
     console.log(`      owner: ${owner}`);
     console.log(`      repo: ${repo}`);
 
-    const forks = await context.github.repos.listForks({ owner, repo });
+    const forks = await octokit.repos.listForks({ owner, repo });
     forks.data.map(fork => {
       // console.log(`in forks: ${JSON.stringify(fork)}`)
       console.log(`fork found ${fork.owner.login}/${fork.name}`);
@@ -337,7 +294,7 @@ module.exports = app => {
   const getForkBranches = async (octokit, context, fork) => {
     console.log(`getForkBranches`);
     console.log(`github.repos.listBranches`);
-    const branches = await context.github.repos.listBranches({
+    const branches = await octokit.repos.listBranches({
       owner: fork.owner.login,
       repo: fork.name,
     });
@@ -398,7 +355,7 @@ module.exports = app => {
   const getRepoIssues = async (octokit, context, owner, repo) => {
     console.log(`getRepoIssues`);
     console.log(`github.issues.listForRepo`);
-    const issues = await context.github.issues.listForRepo({ owner, repo });
+    const issues = await octokit.issues.listForRepo({ owner, repo });
     console.log(`issues: ${issues}`);
     const branches = await getAllBranches(context);
     console.log(`allBranches:`);
@@ -587,50 +544,6 @@ module.exports = app => {
       }
       unlock(context);
     } catch (err) {
-      unlock(context);
-    }
-  });
-
-  app.on('issues.labeled', async (_, context) => {
-    try {
-      await waitForLock(context);
-      console.log(`on issues.labeled`);
-      console.log('issues.labeled');
-      const issueLabels = getIssueLabels(context);
-      if (Object.keys(conventions).includes(context.payload.label.name)) {
-        console.log('<< convention label');
-        await addConventionalTitle(octokit, context, context.payload.label.name);
-        const otherConventionLabels = Object.keys(conventions)
-          .filter(convention => convention !== context.payload.label.name)
-          .filter(key => issueLabels.includes(key));
-        console.log('>> remove other convents, more info please, and commented labels');
-        await removeLabels(octokit, context, [...otherConventionLabels, 'more info please', 'commented']);
-      }
-      await moveCardsMatchingIssueToCorrectColumn(context);
-      unlock(context);
-    } catch (err) {
-      unlock(context);
-    }
-  });
-
-  app.on('schedule.two', async (_, context) => {
-    try {
-      await waitForLock(context);
-      console.log(`on schedule.two`);
-      unlock(context);
-    } catch (err) {
-      console.log(`Error: ${err}`);
-      unlock(context);
-    }
-  });
-
-  app.on('schedule.three', async (_, context) => {
-    try {
-      await waitForLock(context);
-      console.log(`on schedule.three`);
-      unlock(context);
-    } catch (err) {
-      console.log(`Error: ${err}`);
       unlock(context);
     }
   });

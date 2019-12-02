@@ -511,6 +511,73 @@ const adjustCommentedLabel = async (octokit, context) => {
   }
 };
 
+const addConventionalTitle = async (context, issueType) => {
+  console.log(`addCOnventionalTitle`);
+  let issueTitle = context.payload.issue.title;
+  Object.values(conventions).map(cur => {
+    const re = `^${cur}\h*[:,\.\h]+\h*`;
+    const regex = new RegExp(re, 'i');
+    issueTitle = issueTitle.replace(regex, '');
+  });
+  const title = `${conventions[issueType]}: ${issueTitle}`;
+  console.log(`github.issues.update`);
+  if (issueTitle !== title) {
+    await octokit.issues.update({
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
+      issue_number: context.payload.issue.number,
+      title,
+    });
+  } else {
+    console.log('no change to conventional title');
+  }
+};
+
+const removeLabels = async (_, context, labelsToRemove) => {
+  console.log(`removeLabels`);
+  console.log(`github.issues.listLabelsOnIssue`);
+  const labels = await octokit.issues.listLabelsOnIssue({
+    owner: context.payload.repository.owner.login,
+    repo: context.payload.repository.name,
+    issue_number: context.payload.issue.number,
+  });
+  const labelNames = labels.data.map(cur => cur.name);
+  for (const labelToRemove of labelsToRemove) {
+    if (labelNames.includes(labelToRemove)) {
+      console.log(`remove label ${labelToRemove}`);
+      await octokit.issues.removeLabel({
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        number: context.payload.issue.number,
+        name: labelToRemove,
+      });
+    }
+  }
+};
+
+const adjustLabelsToConventions = (octokit, context) => {
+  console.log(`on issues.labeled`);
+  console.log('issues.labeled');
+  const issueLabels = getIssueLabels(context);
+  if (Object.keys(conventions).includes(context.payload.label.name)) {
+    const otherConventionLabels = Object.keys(conventions)
+      .filter(convention => convention !== context.payload.label.name)
+      .filter(key => issueLabels.includes(key));
+    console.log('>> remove other convents, more info please, and commented labels');
+    await removeLabels(octokit, context, [...otherConventionLabels, 'more info please', 'commented']);
+  }
+}
+
+const adjustTitleToConventions = (octokit, context) => {
+  console.log(`on issues.labeled`);
+  console.log('issues.labeled');
+  const issueLabels = getIssueLabels(context);
+  if (Object.keys(conventions).includes(context.payload.label.name)) {
+    console.log('<< convention label');
+    await addConventionalTitle(octokit, context, context.payload.label.name);
+  }
+};
+
 module.exports = {
   addComment,
   createCardFromIssue,
@@ -518,4 +585,6 @@ module.exports = {
   createOnceBoards,
   adjustCommentedLabel,
   createOnceLabels,
+  adjustTitleToConventions,
+  adjustLabelsToConventions,
 };
