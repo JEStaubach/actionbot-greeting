@@ -395,9 +395,67 @@ const moveCardsMatchingIssueToCorrectColumn = async (octokit, context) => {
   }
 };
 
+const isCardMatchingIssueInBoardColumn = async (octokit, context, boardName, columnName) => {
+  console.log(`isCardMatchingIssueInBoardColumn`);
+  const column = await getBoardColumnByNames(octokit, context, boardName, columnName);
+  console.log(`github.projects.listCards`);
+  const columnCards = await octokit.projects.listCards({ column_id: column.id });
+  console.log(`columnCards: ${columnCards}`);
+  const matchingCards = await getBoardCardsMatchingIssue(octokit, context, boardName);
+  for (const matchingCard of matchingCards) {
+    console.log(`matchingCard: ${matchingCard.id}`);
+    for (const columnCard of columnCards.data) {
+      console.log(`  columnCard: ${columnCard.id}`);
+      if (matchingCard.id === columnCard.id) {
+        console.log(`   match: ${matchingCard.id} ${columnCard.id}`);
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+const addLabels = async (context, labels) => {
+  console.log(`addLabels`);
+  console.log(`github.issues.addLabels`);
+  await octokit.issues.addLabels({
+    owner: context.payload.repository.owner.login,
+    repo: context.payload.repository.name,
+    issue_number: context.payload.issue.number,
+    labels,
+  });
+};
+
+const adjustCommentedLabel = async (octokit, context) => {
+  console.log(`on issue_comment.created`);
+  console.log('issue_comment.created');
+  if (context.payload.comment.user.login !== 'github-actions[bot]') {
+    console.log('<< comment from !== github-actions[bot]');
+    const isInMoreColumn = await isCardMatchingIssueInBoardColumn(octokit, context, 'triage', 'more info please');
+    const isInQuestionColumn = await isCardMatchingIssueInBoardColumn(octokit, context, 'questions', 'question');
+    const isInRespondedColumn = await isCardMatchingIssueInBoardColumn(octokit, context, 'questions', 'responded');
+    if (isInMoreColumn) {
+      console.log('<< issue in more info please column');
+      if (!commenterInIssueAssignees(octokit, context)) {
+        console.log('>> commenter not assigneee, add commented label');
+        await addLabels(octokit, context, ['commented']);
+      }
+      await moveCardsMatchingIssueToCorrectColumn(octokit, context);
+    } else if (isInQuestionColumn || isInRespondedColumn) {
+      console.log('<< issue question  or responded column');
+      if (!commenterInIssueAssignees(octokit, context)) {
+        console.log('>> commenter not assignee, add commented label');
+        await addLabels(octokit, context, ['commented']);
+      }
+      await moveCardsMatchingIssueToCorrectColumn(octokit, context);
+    }
+  }
+};
+
 module.exports = {
   addComment,
   createCardFromIssue,
   moveCardsMatchingIssueToCorrectColumn,
   createOnceBoards,
+  adjustCommentedLabel,
 };

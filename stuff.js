@@ -165,47 +165,6 @@ module.exports = app => {
     */
   };
 
-  const getProjectBoard = async (_, context, boardName) => {
-    console.log(`getProjectBoard`);
-    console.log(`github.projects.listForRepo`);
-    const projects = await context.github.projects.listForRepo({
-      owner: context.payload.repository.owner.login,
-      repo: context.payload.repository.name,
-    });
-    const [board] = projects.data.filter(project => project.name === boardName);
-    return board;
-  };
-
-  const getBoardColumns = async (_, context, board) => {
-    console.log(`getBoardColumns`);
-    console.log(`github.projects.listColumns`);
-    return await context.github.projects.listColumns({ project_id: board.id });
-  };
-
-  const getBoardColumnsByBoardName = async (octokit, context, boardName) => {
-    console.log(`getBoardColumnsByBoardName`);
-    const board = await getProjectBoard(octokit, context, boardName);
-    return await getBoardColumns(octokit, context, board);
-  };
-
-  const getBoardColumnByNames = async (octokit, context, boardName, columnName) => {
-    console.log(`getBoardColumnByNames`);
-    const columns = await getBoardColumnsByBoardName(octokit, context, boardName);
-    const [boardColumn] = columns.data.filter(column => column.name === columnName);
-    return boardColumn;
-  };
-
-  const createCardFromIssue = async (octokit, context, { boardName, columnName }) => {
-    console.log(`createCardFromIssue`);
-    const column = await getBoardColumnByNames(octokit, context, boardName, columnName);
-    console.log(`github.projects.createCard`);
-    await context.github.projects.createCard({
-      column_id: column.id,
-      content_id: context.payload.issue.id,
-      content_type: 'Issue',
-    });
-  };
-
   const moveCardsMatchingIssueInBoardToBoardColumnAtPosition = async (
     octokit,
     context,
@@ -265,11 +224,6 @@ module.exports = app => {
     );
   };
 
-  const getIssueLabels = (_, context) => {
-    console.log(`getIssueLabels`);
-    return context.payload.issue.labels.map(cur => cur.name);
-  };
-
   const removeLabels = async (_, context, labelsToRemove) => {
     console.log(`removeLabels`);
     console.log(`github.issues.listLabelsOnIssue`);
@@ -319,36 +273,6 @@ module.exports = app => {
     return `after:${cardId}`;
   };
 
-  const isCardMatchingIssueInBoardColumn = async (octokit, context, boardName, columnName) => {
-    console.log(`isCardMatchingIssueInBoardColumn`);
-    const column = await getBoardColumnByNames(octokit, context, boardName, columnName);
-    console.log(`github.projects.listCards`);
-    const columnCards = await context.github.projects.listCards({ column_id: column.id });
-    console.log(`columnCards: ${columnCards}`);
-    const matchingCards = await getBoardCardsMatchingIssue(octokit, context, boardName);
-    for (const matchingCard of matchingCards) {
-      console.log(`matchingCard: ${matchingCard.id}`);
-      for (const columnCard of columnCards.data) {
-        console.log(`  columnCard: ${columnCard.id}`);
-        if (matchingCard.id === columnCard.id) {
-          console.log(`   match: ${matchingCard.id} ${columnCard.id}`);
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  const addLabels = async (context, labels) => {
-    console.log(`addLabels`);
-    console.log(`github.issues.addLabels`);
-    await context.github.issues.addLabels({
-      owner: context.payload.repository.owner.login,
-      repo: context.payload.repository.name,
-      issue_number: context.payload.issue.number,
-      labels,
-    });
-  };
 
   const addComment = async (context, comment) => {
     console.log(`addComment`);
@@ -667,42 +591,6 @@ module.exports = app => {
     }
   });
 
-  app.on('issues.unassigned', async (_, context) => {
-    try {
-      await waitForLock(context);
-      console.log(`on issues.unassigned`);
-      console.log('issues.unassigned');
-      await moveCardsMatchingIssueToCorrectColumn(context);
-      unlock(context);
-    } catch (err) {
-      unlock(context);
-    }
-  });
-
-  app.on('issues.assigned', async (_, context) => {
-    try {
-      await waitForLock(context);
-      console.log(`on issues.assigned`);
-      console.log('issues.assigned');
-      await moveCardsMatchingIssueToCorrectColumn(context);
-      unlock(context);
-    } catch (err) {
-      unlock(context);
-    }
-  });
-
-  app.on('issues.unlabeled', async (_, context) => {
-    try {
-      await waitForLock(context);
-      console.log(`on issues.unlabeled`);
-      console.log(`issues.unlabeled ${context.payload.label.name}`);
-      await moveCardsMatchingIssueToCorrectColumn(context);
-      unlock(context);
-    } catch (err) {
-      unlock(context);
-    }
-  });
-
   app.on('issues.labeled', async (_, context) => {
     try {
       await waitForLock(context);
@@ -719,38 +607,6 @@ module.exports = app => {
         await removeLabels(octokit, context, [...otherConventionLabels, 'more info please', 'commented']);
       }
       await moveCardsMatchingIssueToCorrectColumn(context);
-      unlock(context);
-    } catch (err) {
-      unlock(context);
-    }
-  });
-
-  app.on('issue_comment.created', async (_, context) => {
-    try {
-      await waitForLock(context);
-      console.log(`on issue_comment.created`);
-      console.log('issue_comment.created');
-      if (context.payload.comment.user.login !== 'issue-watcher[bot]') {
-        console.log('<< comment from !== issue-watcher[bot]');
-        const isInMoreColumn = await isCardMatchingIssueInBoardColumn(octokit, context, 'triage', 'more info please');
-        const isInQuestionColumn = await isCardMatchingIssueInBoardColumn(octokit, context, 'questions', 'question');
-        const isInRespondedColumn = await isCardMatchingIssueInBoardColumn(octokit, context, 'questions', 'responded');
-        if (isInMoreColumn) {
-          console.log('<< issue in more info please column');
-          if (!commenterInIssueAssignees(context)) {
-            console.log('>> commenter not assigneee, add commented label');
-            await addLabels(octokit, context, ['commented']);
-          }
-          await moveCardsMatchingIssueToCorrectColumn(context);
-        } else if (isInQuestionColumn || isInRespondedColumn) {
-          console.log('<< issue question  or responded column');
-          if (!commenterInIssueAssignees(context)) {
-            console.log('>> commenter not assignee, add commented label');
-            await addLabels(octokit, context, ['commented']);
-          }
-          await moveCardsMatchingIssueToCorrectColumn(context);
-        }
-      }
       unlock(context);
     } catch (err) {
       unlock(context);
