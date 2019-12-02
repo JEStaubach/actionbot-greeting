@@ -58,7 +58,6 @@ const createOnceLabels = async (octokit, context, labelsParam) => {
       }
     }
   }
-  console.log(testError);
 };
 
 const createOnceBoards = async (octokit, context, boardsParam) => {
