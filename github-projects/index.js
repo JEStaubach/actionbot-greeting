@@ -534,7 +534,7 @@ const addConventionalTitle = async (octokit, context, issueType) => {
   }
 };
 
-const removeLabels = async (_, context, labelsToRemove) => {
+const removeLabels = async (octokit, context, labelsToRemove) => {
   console.log(`removeLabels`);
   console.log(`github.issues.listLabelsOnIssue`);
   const labels = await octokit.issues.listLabelsOnIssue({
