@@ -70,11 +70,13 @@ module.exports = app => {
   const mergedConfig = merge(config, packageJson, { arrayMerge: overwriteMerge });
   console.log(`\nMerged:\n${JSON.stringify(mergedConfig)}`);
 
+  /*
   createScheduler(app, {
     delay: false,
-    interval: 60 * 60 * 1000 /*24 * 60 * 60 * 1000*/,
+    interval: 60 * 60 * 1000, //24 * 60 * 60 * 1000,
     name: 'four',
   });
+  */
 
   createScheduler(app, {
     delay: false,
@@ -152,19 +154,7 @@ module.exports = app => {
     }
   };
 
-  const initRepoProjects = async () => {
-    // this event is triggered on startup
-    console.log(`initRepoProjects`);
-    const fileExists = await watcherFileExists('JSDevTools', 'testrepo', '.watcher');
-    console.log(`fileExists: ${fileExists}`);
-    /*
-    const issues = await octokit.issues.listForRepo({
-      owner: 'JSDevTools',
-      repo: 'testrepo',
-    });
-    */
-  };
-
+/*
   const moveCardsMatchingIssueInBoardToBoardColumnAtPosition = async (
     octokit,
     context,
@@ -251,7 +241,6 @@ module.exports = app => {
     return `after:${cardId}`;
   };
 
-
   const addComment = async (context, comment) => {
     console.log(`addComment`);
     const issueComment = context.issue({ body: comment });
@@ -259,85 +248,13 @@ module.exports = app => {
     await octokit.issues.createComment(issueComment);
   };
 
-  const hasAssignee = issues(_, context) => {
+  const hasAssignee = (_, context) => {
     console.log(`hasAssignee`);
     return context.payload.issue.assignees.length > 0;
   };
+*/
 
-
-  const getBranches = async (_, context) => {
-    console.log(`getBranches`);
-    console.log(`github.repos.listBranches`);
-    const branches = await octokit.repos.listBranches({
-      owner: context.payload.repository.owner.login,
-      repo: context.payload.repository.name,
-    });
-    return branches.data;
-  };
-
-  const getForks = async (_, context) => {
-    console.log(`getForks`);
-    console.log(`github.repos.listForks`);
-    const owner = context.payload.repository.owner.login;
-    const repo = context.payload.repository.name;
-    console.log(`      owner: ${owner}`);
-    console.log(`      repo: ${repo}`);
-
-    const forks = await octokit.repos.listForks({ owner, repo });
-    forks.data.map(fork => {
-      // console.log(`in forks: ${JSON.stringify(fork)}`)
-      console.log(`fork found ${fork.owner.login}/${fork.name}`);
-    });
-    return forks.data;
-  };
-
-  const getForkBranches = async (octokit, context, fork) => {
-    console.log(`getForkBranches`);
-    console.log(`github.repos.listBranches`);
-    const branches = await octokit.repos.listBranches({
-      owner: fork.owner.login,
-      repo: fork.name,
-    });
-    branches.data.map(branch => {
-      console.log(`fork ${fork.owner.login}/${fork.name} branch ${branch.name}`);
-    });
-    return branches.data;
-  };
-
-  const getBranchesOfForks = async (_, context) => {
-    console.log(`getBranchesOfForks`);
-    const forks = await getForks(context);
-    let allBranches = [];
-    for (const fork of forks) {
-      const branches = await getForkBranches(octokit, context, fork);
-      allBranches = [...allBranches, ...branches];
-    }
-    return allBranches;
-  };
-
-  const getAllBranches = async (_, context) => {
-    console.log(`getAllBranches`);
-    const branches = await getBranches(context);
-    const forkBranches = await getBranchesOfForks(context);
-    return [...branches, ...forkBranches];
-  };
-
-  const getAllBranchesMatchingIssue = async (octokit, context, branches) => {
-    console.log(`getAllBranchesMatchingIssue`);
-    const issueTitle = context.payload.issue.title;
-    const colon = issueTitle.indexOf(':');
-    if (colon === -1) {
-      return [];
-    }
-    const abbrev = issueTitle.slice(0, colon);
-    const issueNumber = context.payload.issue.number;
-    const branchText = `${abbrev}-${issueNumber}`;
-    return branches.filter(branch => {
-      console.log(`branch.name ${branch.name} branchText ${branchText}`);
-      return branch.name.match(branchText);
-    });
-  };
-
+  /*
   const issueHasMatchingBranches = async (_, context) => {
     console.log(`issueHasMatchingBranches`);
     const branches = await getAllBranches(context);
@@ -351,34 +268,7 @@ module.exports = app => {
     const branchesMatchingIssue = await getAllBranchesMatchingIssue(octokit, context, branches);
     return branchesMatchingIssue.length > 0;
   };
-
-  const getRepoIssues = async (octokit, context, owner, repo) => {
-    console.log(`getRepoIssues`);
-    console.log(`github.issues.listForRepo`);
-    const issues = await octokit.issues.listForRepo({ owner, repo });
-    console.log(`issues: ${issues}`);
-    const branches = await getAllBranches(context);
-    console.log(`allBranches:`);
-    for (const branch of branches) {
-      console.log(`  name: ${branch['name']}`);
-      for (const key of Object.keys(branch).filter(cur => cur != 'name')) {
-        console.log(`    ${key}: ${branch[key]}`);
-      }
-    }
-    //let allBranchesMatchingIssue = [];
-    for (const issue of issues.data) {
-      const tempContext = { ...context };
-      tempContext.payload.issue = issue;
-      console.log(`issue ${issue.title}`);
-      const branchesMatchingIssue = await getAllBranchesMatchingIssue(tempContext, branches);
-      if (branchesMatchingIssue.length > 0) {
-        addLabels(octokit, context, ['WIP']);
-      }
-      //allBranchesMatchingIssue = [ ...allBranchesMatchingIssue, ...branchesMatchingIssue ];
-    }
-    //console.log(JSON.stringify(allBranchesMatchingIssue));
-  };
-
+  
   const commenterInIssueAssignees = (_, context) => {
     console.log(`commenterInIssueAssignees`);
     if (!Object.keys(context.payload).includes('comment')) return false;
@@ -386,7 +276,7 @@ module.exports = app => {
     const assignees = context.payload.issue.assignees.map(curr => curr.login);
     return assignees.filter(assignee => assignee === commenter).length > 0;
   };
-
+  
   const moveCardsMatchingIssueToCorrectColumn = async (_, context) => {
     console.log(`moveCardsMatchingIssueToCorrectColumn`);
     const issueLabels = getIssueLabels(context);
@@ -519,7 +409,7 @@ module.exports = app => {
       }
     }
   };
-
+  */
   app.on('create', async (_, context) => {
     try {
       await waitForLock(context);
@@ -548,18 +438,7 @@ module.exports = app => {
     }
   });
 
-  app.on('schedule.startup', async (_, context) => {
-    try {
-      await waitForLock(context);
-      console.log(`on schedule.startup`);
-      await initRepoProjects();
-      unlock(context);
-    } catch (err) {
-      console.log(`Error: ${err}`);
-      unlock(context);
-    }
-  });
-
+/*
   app.on('schedule.four', async (_, context) => {
     // this event is triggered on an interval
     try {
@@ -577,6 +456,7 @@ module.exports = app => {
       unlock(context);
     }
   });
+  */
 
   const eventTypes = [
     'check_name',

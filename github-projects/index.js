@@ -578,6 +578,127 @@ const adjustTitleToConventions = async (octokit, context) => {
   }
 };
 
+const getForks = async (_, context) => {
+  console.log(`getForks`);
+  console.log(`github.repos.listForks`);
+  const owner = context.payload.repository.owner.login;
+  const repo = context.payload.repository.name;
+  console.log(`      owner: ${owner}`);
+  console.log(`      repo: ${repo}`);
+
+  const forks = await octokit.repos.listForks({ owner, repo });
+  forks.data.map(fork => {
+    // console.log(`in forks: ${JSON.stringify(fork)}`)
+    console.log(`fork found ${fork.owner.login}/${fork.name}`);
+  });
+  return forks.data;
+};
+
+const getForkBranches = async (octokit, context, fork) => {
+  console.log(`getForkBranches`);
+  console.log(`github.repos.listBranches`);
+  const branches = await octokit.repos.listBranches({
+    owner: fork.owner.login,
+    repo: fork.name,
+  });
+  branches.data.map(branch => {
+    console.log(`fork ${fork.owner.login}/${fork.name} branch ${branch.name}`);
+  });
+  return branches.data;
+};
+
+const getBranchesOfForks = async (_, context) => {
+  console.log(`getBranchesOfForks`);
+  const forks = await getForks(context);
+  let allBranches = [];
+  for (const fork of forks) {
+    const branches = await getForkBranches(octokit, context, fork);
+    allBranches = [...allBranches, ...branches];
+  }
+  return allBranches;
+};
+
+const getBranches = async (_, context) => {
+  console.log(`getBranches`);
+  console.log(`github.repos.listBranches`);
+  const branches = await octokit.repos.listBranches({
+    owner: context.payload.repository.owner.login,
+    repo: context.payload.repository.name,
+  });
+  return branches.data;
+};
+
+const getAllBranches = async (_, context) => {
+  console.log(`getAllBranches`);
+  const branches = await getBranches(context);
+  const forkBranches = await getBranchesOfForks(context);
+  return [...branches, ...forkBranches];
+};
+
+const getAllBranchesMatchingIssue = async (octokit, context, branches) => {
+  console.log(`getAllBranchesMatchingIssue`);
+  const issueTitle = context.payload.issue.title;
+  const colon = issueTitle.indexOf(':');
+  if (colon === -1) {
+    return [];
+  }
+  const abbrev = issueTitle.slice(0, colon);
+  const issueNumber = context.payload.issue.number;
+  const branchText = `${abbrev}-${issueNumber}`;
+  return branches.filter(branch => {
+    console.log(`branch.name ${branch.name} branchText ${branchText}`);
+    return branch.name.match(branchText);
+  });
+};
+
+const getRepoBranches = async(octokit, context) => {
+  const branches = await getAllBranches(octokit, context);
+  console.log(`allBranches:`);
+  for (const branch of branches) {
+    console.log(`  name: ${branch['name']}`);
+    for (const key of Object.keys(branch).filter(cur => cur != 'name')) {
+      console.log(`    ${key}: ${branch[key]}`);
+    }
+  }
+  return branches;
+}
+
+const getRepoIssues = async (octokit, context, owner, repo) => {
+  console.log(`getRepoIssues`);
+  console.log(`github.issues.listForRepo`);
+  const issues = await octokit.issues.listForRepo({ owner, repo });
+  console.log(`issues: ${issues}`);
+  return issues;
+}
+
+const getBranchesMatchingIssues = (octokit, context, issues, branches) => {
+  const allBranchesMatchingIssue = [];
+  for (const issue of issues.data) {
+    const tempContext = { ...context };
+    tempContext.payload.issue = issue;
+    console.log(`issue ${issue.title}`);
+    const branchesMatchingIssue = await getAllBranchesMatchingIssue(tempContext, branches);
+    for (const branchMatchingIssue of branchesMatchingIssue) {
+      allBranchesMatchingIssue.push(branchMatchingIssue);
+    }
+  }
+  return allBranchesMatchingIssue;
+};
+
+const tagIssueWithBranchAsWIP = async (octokit, context) => {
+  console.log(`on schedule`);
+  console.log(`running scheduled activities`);
+  const owner = context.payload.repository.owner.login;
+  const repo = context.payload.repository.name;
+  console.log(`owner ${owner} / repo ${repo}`);
+  const issues = await getRepoIssues(octokit, context, owner, repo);
+  const branches = await getRepoBranches(octokit, context);
+  const allBranchesMatchingIssue = await getBranchesMatchingIssues(octokit, context, issues, branches);
+  if (allBranchesMatchingIssue.length > 0) {
+    await addLabels(octokit, context, ['WIP']);
+  }
+};
+
 module.exports = {
   addComment,
   createCardFromIssue,
@@ -587,4 +708,5 @@ module.exports = {
   createOnceLabels,
   adjustTitleToConventions,
   adjustLabelsToConventions,
+  tagIssueWithBranchAsWIP,
 };
