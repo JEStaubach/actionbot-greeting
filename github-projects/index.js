@@ -692,25 +692,19 @@ const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
   console.log(`on schedule`);
   console.log(`running scheduled activities`);
   const [ owner, repository ] = repo.split('/');
-  const issues = await getRepoIssues(
-    octokit,
-    {
-      ...context,
-      payload: {
-        ...context.payload,
-        repository: {
-          owner: {
-            login: owner,
-          },
-          name: repository,
-        }
-      }
+  const tempContext = context;
+  tempContext.payload.repository = {
+    owner: {
+      login: owner,
     },
-    repo);
-  const branches = await getRepoBranches(octokit, context);
-  const allBranchesMatchingIssue = await getBranchesMatchingIssues(octokit, context, issues, branches);
+    name: repository,
+  };
+  const issues = await getRepoIssues(octokit, tempContext);
+  const branches = await getRepoBranches(octokit, tempContext);
+  const allBranchesMatchingIssue = await getBranchesMatchingIssues(octokit, tempContext, issues, branches);
   if (allBranchesMatchingIssue.length > 0) {
-    await addLabels(octokit, context, ['WIP']);
+    console.log(`${JSON.stringify(allBranchesMatchingIssue)}`);
+    await addLabels(octokit, tempContext, ['WIP']);
   }
 };
 
