@@ -712,7 +712,7 @@ const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
 const getIssuesNotInAProjectBoard = async (octokit, context) => {
   console.log(`getIssuesNotInAProjectBoard`);
   const allCards = [];
-  const boards = await getProjectBoards(octokit, tempContext);
+  const boards = await getProjectBoards(octokit, context);
   for (const board of boards) {
     const columns = await getBoardColumnsByBoardName(octokit, context, board.name);
     for (const column of columns.data) {
@@ -723,7 +723,7 @@ const getIssuesNotInAProjectBoard = async (octokit, context) => {
     }
   }
   const allNonMatchingIssues = [];
-  const issues = await getRepoIssues(octokit, tempContext);
+  const issues = await getRepoIssues(octokit, context);
   for (const issue of issues) {
     const matchingCards = allCards.data.filter(card => {
       const [contentType, contentNumber] = card.content_url.split('/').slice(-2);
