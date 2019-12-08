@@ -690,7 +690,7 @@ const getIssuesWithMatchingBranches = async (octokit, context, issues, branches)
 
 const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
   console.log(`on schedule`);
-  console.log(`running scheduled activities`);
+  console.log(`running scheduled activiy: tagIssueWithBranchAsWIP`);
   const [ owner, repository ] = repo.split('/');
   const tempContext = context;
   tempContext.payload.repository = {
@@ -709,6 +709,71 @@ const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
   }
 };
 
+const getIssuesNotInAProjectBoard = async (octokit, context) => {
+  console.log(`getIssuesNotInAProjectBoard`);
+  const allCards = [];
+  const boards = await getProjectBoards(octokit, tempContext);
+  for (const board of boards) {
+    const columns = await getBoardColumnsByBoardName(octokit, context, board.name);
+    for (const column of columns.data) {
+      const cards = await octokit.projects.listCards({ column_id: column.id });
+      for (const card of cards) {
+        allCards.push(card);
+      }
+    }
+  }
+  const allNonMatchingIssues = [];
+  const issues = await getRepoIssues(octokit, tempContext);
+  for (const issue of issues) {
+    const matchingCards = allCards.data.filter(card => {
+      const [contentType, contentNumber] = card.content_url.split('/').slice(-2);
+      return contentType === 'issues' && Number(contentNumber) === issue.number;
+    });
+    if (matchingCards.length === 0) {
+      allNonMatchingIssues.push(issue);
+    }
+  }
+  return allNonMatchingIssues;
+};
+
+const createCardsForMissingIssues = async (octokit, context, repo) => {
+  console.log(`on schedule`);
+  console.log(`running scheduled activiy: createCardsForMissingIssues`);
+  const [ owner, repository ] = repo.split('/');
+  const tempContext = context;
+  tempContext.payload.repository = {
+    owner: {
+      login: owner,
+    },
+    name: repository,
+  };
+  const missingIssues = await getIssuesNotInAProjectBoard(octokit, tempContext);
+  for (const missingIssue of missingIssues) {
+    tempContext.payload.issue = missingIssue;
+    await createCardFromIssue(octokit, tempContext, { boardName: 'triage', columnName: 'awaiting review' });
+    await moveCardsMatchingIssueToCorrectColumn(octokit, tempContext);
+  }
+};
+
+const moveAllCardsToCorrectPosition = (octokit, context, repo) => {
+  await createCardsForMissingIssues(octokit, context, repo);
+  console.log(`on schedule`);
+  console.log(`running scheduled activiy: moveAllCardsToCorrectColumn`);
+  const [ owner, repository ] = repo.split('/');
+  const tempContext = context;
+  tempContext.payload.repository = {
+    owner: {
+      login: owner,
+    },
+    name: repository,
+  };
+  const issues = await getRepoIssues(octokit, tempContext);
+  for (const issue of issues) {
+    tempContext.payload.issue = issue;
+    await moveCardsMatchingIssueToCorrectColumn(octokit, tempContext);
+  }
+}
+
 module.exports = {
   addComment,
   createCardFromIssue,
@@ -719,4 +784,6 @@ module.exports = {
   adjustTitleToConventions,
   adjustLabelsToConventions,
   tagIssueWithBranchAsWIP,
+  createCardsForMissingIssues,
+  moveAllCardsToCorrectPosition,
 };
