@@ -663,13 +663,13 @@ const getRepoBranches = async(octokit, context) => {
   return branches;
 }
 
-const getRepoIssues = async (octokit, context, repository) => {
+const getRepoIssues = async (octokit, context) => {
   console.log(`getRepoIssues`);
-  console.log(`${JSON.stringify(context)} ${repository}`);
-  const [owner, repo] = repository.split('/');
-  console.log(`owner ${owner} / repo ${repo}`);
   console.log(`github.issues.listForRepo`);
-  const issues = await octokit.issues.listForRepo({ owner, repo });
+  const issues = await octokit.issues.listForRepo({
+    owner: context.payload.repository.owner.login,
+    repo: context.payload.repository.name,
+  });
   console.log(`issues: ${issues}`);
   return issues;
 }
@@ -691,7 +691,22 @@ const getBranchesMatchingIssues = async (octokit, context, issues, branches) => 
 const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
   console.log(`on schedule`);
   console.log(`running scheduled activities`);
-  const issues = await getRepoIssues(octokit, context, repo);
+  const [ owner, repository ] = repo.split('/');
+  const issues = await getRepoIssues(
+    octokit,
+    {
+      ...context,
+      payload: {
+        ...context.payload,
+        repository: {
+          owner: {
+            login: owner,
+          },
+          name: repository,
+        }
+      }
+    },
+    repo);
   const branches = await getRepoBranches(octokit, context);
   const allBranchesMatchingIssue = await getBranchesMatchingIssues(octokit, context, issues, branches);
   if (allBranchesMatchingIssue.length > 0) {
