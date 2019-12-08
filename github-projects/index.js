@@ -682,7 +682,7 @@ const getIssuesWithMatchingBranches = async (octokit, context, issues, branches)
     console.log(`issue ${issue.title}`);
     const branchesMatchingIssue = await getAllBranchesMatchingIssue(octokit, tempContext, branches);
     if (branchesMatchingIssue.length > 0) {
-      allIssuesWithMatchingBranches.push(tempContext);
+      allIssuesWithMatchingBranches.push({...tempContext});
     }
   }
   return allIssuesWithMatchingBranches;
