@@ -666,7 +666,7 @@ const getRepoBranches = async(octokit, context) => {
 const getRepoIssues = async (octokit, context, repository) => {
   console.log(`getRepoIssues`);
   console.log(`${JSON.stringify(context)} ${repository}`);
-  const [owner, repo] = repo.split('/');
+  const [owner, repo] = repository.split('/');
   console.log(`owner ${owner} / repo ${repo}`);
   console.log(`github.issues.listForRepo`);
   const issues = await octokit.issues.listForRepo({ owner, repo });
