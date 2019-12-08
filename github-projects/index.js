@@ -774,6 +774,35 @@ const moveAllCardsToCorrectPosition = async (octokit, context, repo) => {
   }
 }
 
+const markIssueMatchingBranchAsWIP = async (octokit, context, repo, ref) => {
+  console.log(`on create branch: markIssueMatchingBranchAsWIP`);
+  console.log(`context: ${JSON.stringify(context.payload.ref_type)}`);
+  console.log(`<< ref ${context.payload.ref}`);
+  const tempContext = context;
+  tempContext.payload.repository = {
+    owner: {
+      login: owner,
+    },
+    name: repository,
+  };
+  const branchName = ref;
+  const convention = branchName
+    .split('-')
+    .slice(0, -1)
+    .join('-');
+  const issueNumber = branchName.split('-').slice(-1);
+  if (Object.values(conventions).includes(convention)) {
+    console.log(`<< conventional branch name ${convention}`);
+    console.log(`<< issueNumber ${issueNumber}`);
+    tempContext.payload.issue = { number: Number(issueNumber), };
+    const cards = await getBoardCardsMatchingIssueNumber(octokit, tempContext, 'triage', Number(issueNumber));
+    cards.map(card => {
+      console.log(`matching card: ${JSON.stringify(card)}`);
+      addLabels(octokit, tempContext, ['WIP']);
+    });
+  }
+};
+
 module.exports = {
   addComment,
   createCardFromIssue,
@@ -786,4 +815,5 @@ module.exports = {
   tagIssueWithBranchAsWIP,
   createCardsForMissingIssues,
   moveAllCardsToCorrectPosition,
+  markIssueMatchingBranchAsWIP,
 };
