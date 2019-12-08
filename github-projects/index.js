@@ -755,7 +755,7 @@ const createCardsForMissingIssues = async (octokit, context, repo) => {
   }
 };
 
-const moveAllCardsToCorrectPosition = (octokit, context, repo) => {
+const moveAllCardsToCorrectPosition = async (octokit, context, repo) => {
   await createCardsForMissingIssues(octokit, context, repo);
   console.log(`on schedule`);
   console.log(`running scheduled activiy: moveAllCardsToCorrectColumn`);
