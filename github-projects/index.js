@@ -665,6 +665,7 @@ const getRepoBranches = async(octokit, context) => {
 
 const getRepoIssues = async (octokit, context) => {
   console.log(`getRepoIssues`);
+  console.log(`${JSON.stringify(context)}`);
   const owner = context.payload.repository.owner.login;
   const repo = context.payload.repository.name;
   console.log(`owner ${owner} / repo ${repo}`);
