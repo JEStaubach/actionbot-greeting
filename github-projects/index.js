@@ -609,7 +609,7 @@ const getForkBranches = async (octokit, context, fork) => {
 
 const getBranchesOfForks = async (octokit, context) => {
   console.log(`getBranchesOfForks`);
-  const forks = await getForks(context);
+  const forks = await getForks(octokit,context);
   let allBranches = [];
   for (const fork of forks) {
     const branches = await getForkBranches(octokit, context, fork);
