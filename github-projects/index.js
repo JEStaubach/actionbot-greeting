@@ -768,7 +768,7 @@ const moveAllCardsToCorrectPosition = async (octokit, context, repo) => {
     name: repository,
   };
   const issues = await getRepoIssues(octokit, tempContext);
-  for (const issue of issues) {
+  for (const issue of issues.data) {
     tempContext.payload.issue = issue;
     await moveCardsMatchingIssueToCorrectColumn(octokit, tempContext);
   }
