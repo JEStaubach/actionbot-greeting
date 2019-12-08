@@ -449,7 +449,8 @@ const moveCardsMatchingIssueToCorrectColumn = async (octokit, context) => {
       await moveCardsMatchingIssueInBoardToColumnAtPosition(octokit, context, 'triage', 'backlog', 'bottom');
     }
     if (issueHasMatchingBranches(octokit, context) && !getIssueLabels(octokit, context).includes('WIP')) {
-      addLabels(octokit, context, ['WIP']);
+      await addLabels(octokit, context, ['WIP']);
+      await moveCardsMatchingIssueToCorrectColumn(octokit, context);
     }
   }
 };
@@ -798,7 +799,8 @@ const markIssueMatchingBranchAsWIP = async (octokit, context, repo, ref) => {
     const cards = await getBoardCardsMatchingIssueNumber(octokit, tempContext, 'triage', Number(issueNumber));
     cards.map(card => {
       console.log(`matching card: ${JSON.stringify(card)}`);
-      addLabels(octokit, tempContext, ['WIP']);
+      await addLabels(octokit, tempContext, ['WIP']);
+      await moveCardsMatchingIssueToCorrectColumn(octokit, tempContext);
     });
   }
 };
