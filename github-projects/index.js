@@ -682,7 +682,7 @@ const getIssuesWithMatchingBranches = async (octokit, context, issues, branches)
     console.log(`issue ${issue.title}`);
     const branchesMatchingIssue = await getAllBranchesMatchingIssue(octokit, tempContext, branches);
     if (branchesMatchingIssue.length > 0) {
-      allIssuesWithMatchingBranches.push({...tempContext});
+      allIssuesWithMatchingBranches.push(issue);
     }
   }
   return allIssuesWithMatchingBranches;
@@ -704,7 +704,8 @@ const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
   const allIssuesWithMatchingBranches = await getIssuesWithMatchingBranches(octokit, tempContext, issues, branches);
   for (const issueWithMatchingBranch of allIssuesWithMatchingBranches) {
     console.log(`${JSON.stringify(issueWithMatchingBranch)}`);
-    await addLabels(octokit, issueWithMatchingBranch, ['WIP']);
+    tempContext.payload.issue = issueWithMatchingBranch;
+    await addLabels(octokit, tempContext, ['WIP']);
   }
 };
 
