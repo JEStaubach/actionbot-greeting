@@ -674,18 +674,18 @@ const getRepoIssues = async (octokit, context) => {
   return issues;
 }
 
-const getBranchesMatchingIssues = async (octokit, context, issues, branches) => {
-  const allBranchesMatchingIssue = [];
+const getIssuesWithMatchingBranches = async (octokit, context, issues, branches) => {
+  const allIssuesWithMatchingBranches = [];
   for (const issue of issues.data) {
     const tempContext = { ...context };
     tempContext.payload.issue = issue;
     console.log(`issue ${issue.title}`);
     const branchesMatchingIssue = await getAllBranchesMatchingIssue(octokit, tempContext, branches);
-    for (const branchMatchingIssue of branchesMatchingIssue) {
-      allBranchesMatchingIssue.push(branchMatchingIssue);
+    if (branchesMatchingIssue.length > 0) {
+      allIssuesWithMatchingBranches.push(tempContext);
     }
   }
-  return allBranchesMatchingIssue;
+  return allIssuesWithMatchingBranches;
 };
 
 const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
@@ -701,10 +701,10 @@ const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
   };
   const issues = await getRepoIssues(octokit, tempContext);
   const branches = await getRepoBranches(octokit, tempContext);
-  const allBranchesMatchingIssue = await getBranchesMatchingIssues(octokit, tempContext, issues, branches);
-  if (allBranchesMatchingIssue.length > 0) {
-    console.log(`${JSON.stringify(allBranchesMatchingIssue)}`);
-    await addLabels(octokit, tempContext, ['WIP']);
+  const allIssuesWithMatchingBranches = await getIssuesWithMatchingBranches(octokit, tempContext, issues, branches);
+  for (const issueWithMatchingBranch of allIssuesWithMatchingBranches) {
+    console.log(`${JSON.stringify(issueWithMatchingBranch)}`);
+    await addLabels(octokit, issueWithMatchingBranch, ['WIP']);
   }
 };
 
