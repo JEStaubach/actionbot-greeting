@@ -717,7 +717,7 @@ const getIssuesNotInAProjectBoard = async (octokit, context) => {
     const columns = await getBoardColumnsByBoardName(octokit, context, board.name);
     for (const column of columns.data) {
       const cards = await octokit.projects.listCards({ column_id: column.id });
-      for (const card of cards) {
+      for (const card of cards.data) {
         allCards.push(card);
       }
     }
