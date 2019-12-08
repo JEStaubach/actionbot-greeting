@@ -578,7 +578,7 @@ const adjustTitleToConventions = async (octokit, context) => {
   }
 };
 
-const getForks = async (_, context) => {
+const getForks = async (octokit, context) => {
   console.log(`getForks`);
   console.log(`github.repos.listForks`);
   const owner = context.payload.repository.owner.login;
@@ -607,7 +607,7 @@ const getForkBranches = async (octokit, context, fork) => {
   return branches.data;
 };
 
-const getBranchesOfForks = async (_, context) => {
+const getBranchesOfForks = async (octokit, context) => {
   console.log(`getBranchesOfForks`);
   const forks = await getForks(context);
   let allBranches = [];
@@ -618,7 +618,7 @@ const getBranchesOfForks = async (_, context) => {
   return allBranches;
 };
 
-const getBranches = async (_, context) => {
+const getBranches = async (octokit, context) => {
   console.log(`getBranches`);
   console.log(`github.repos.listBranches`);
   const branches = await octokit.repos.listBranches({
@@ -628,10 +628,10 @@ const getBranches = async (_, context) => {
   return branches.data;
 };
 
-const getAllBranches = async (_, context) => {
+const getAllBranches = async (octokit, context) => {
   console.log(`getAllBranches`);
-  const branches = await getBranches(context);
-  const forkBranches = await getBranchesOfForks(context);
+  const branches = await getBranches(octokit, context);
+  const forkBranches = await getBranchesOfForks(octokit, context);
   return [...branches, ...forkBranches];
 };
 
@@ -674,13 +674,13 @@ const getRepoIssues = async (octokit, context, repository) => {
   return issues;
 }
 
-const getBranchesMatchingIssues = async (_, context, issues, branches) => {
+const getBranchesMatchingIssues = async (octokit, context, issues, branches) => {
   const allBranchesMatchingIssue = [];
   for (const issue of issues.data) {
     const tempContext = { ...context };
     tempContext.payload.issue = issue;
     console.log(`issue ${issue.title}`);
-    const branchesMatchingIssue = await getAllBranchesMatchingIssue(tempContext, branches);
+    const branchesMatchingIssue = await getAllBranchesMatchingIssue(octokit, tempContext, branches);
     for (const branchMatchingIssue of branchesMatchingIssue) {
       allBranchesMatchingIssue.push(branchMatchingIssue);
     }
