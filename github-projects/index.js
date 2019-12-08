@@ -724,7 +724,7 @@ const getIssuesNotInAProjectBoard = async (octokit, context) => {
   }
   const allNonMatchingIssues = [];
   const issues = await getRepoIssues(octokit, context);
-  for (const issue of issues) {
+  for (const issue of issues.data) {
     const matchingCards = allCards.data.filter(card => {
       const [contentType, contentNumber] = card.content_url.split('/').slice(-2);
       return contentType === 'issues' && Number(contentNumber) === issue.number;
