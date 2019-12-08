@@ -449,7 +449,7 @@ const moveCardsMatchingIssueToCorrectColumn = async (octokit, context) => {
       await moveCardsMatchingIssueInBoardToColumnAtPosition(octokit, context, 'triage', 'backlog', 'bottom');
     }
     if (issueHasMatchingBranches(octokit, context) && !getIssueLabels(octokit, context).includes('WIP')) {
-      addLabels(octokit, context, [WIP]);
+      addLabels(octokit, context, ['WIP']);
     }
   }
 };
