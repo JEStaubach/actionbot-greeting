@@ -707,6 +707,7 @@ const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
     console.log(`${JSON.stringify(issueWithMatchingBranch)}`);
     tempContext.payload.issue = issueWithMatchingBranch;
     await addLabels(octokit, tempContext, ['WIP']);
+    await moveCardsMatchingIssueToCorrectColumn(octokit, tempContext);
   }
 };
 
