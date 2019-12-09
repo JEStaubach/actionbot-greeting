@@ -797,11 +797,11 @@ const markIssueMatchingBranchAsWIP = async (octokit, context, repo, ref) => {
     console.log(`<< issueNumber ${issueNumber}`);
     tempContext.payload.issue = { number: Number(issueNumber), };
     const cards = await getBoardCardsMatchingIssueNumber(octokit, tempContext, 'triage', Number(issueNumber));
-    cards.map(card => {
+    for (const card of cards) {
       console.log(`matching card: ${JSON.stringify(card)}`);
       await addLabels(octokit, tempContext, ['WIP']);
       await moveCardsMatchingIssueToCorrectColumn(octokit, tempContext);
-    });
+    }
   }
 };
 
