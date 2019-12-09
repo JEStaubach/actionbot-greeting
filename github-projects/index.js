@@ -450,7 +450,6 @@ const moveCardsMatchingIssueToCorrectColumn = async (octokit, context) => {
     }
     if (issueHasMatchingBranches(octokit, context) && !getIssueLabels(octokit, context).includes('WIP')) {
       await addLabels(octokit, context, ['WIP']);
-      await moveCardsMatchingIssueToCorrectColumn(octokit, context);
     }
   }
 };
