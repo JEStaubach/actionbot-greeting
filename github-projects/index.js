@@ -450,6 +450,7 @@ const moveCardsMatchingIssueToCorrectColumn = async (octokit, context) => {
     }
     if (issueHasMatchingBranches(octokit, context) && !getIssueLabels(octokit, context).includes('WIP')) {
       await addLabels(octokit, context, ['WIP']);
+      await moveCardsMatchingIssueInBoardToColumnAtPosition(octokit, context, 'triage', 'WIP', 'bottom');
     }
   }
 };
@@ -706,6 +707,7 @@ const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
     console.log(`${JSON.stringify(issueWithMatchingBranch)}`);
     tempContext.payload.issue = issueWithMatchingBranch;
     await addLabels(octokit, tempContext, ['WIP']);
+    tempContext.payload.issue.labels.push('WIP');
     await moveCardsMatchingIssueToCorrectColumn(octokit, tempContext);
   } 
 };
@@ -800,6 +802,7 @@ const markIssueMatchingBranchAsWIP = async (octokit, context, repo, ref) => {
     for (const card of cards) {
       console.log(`matching card: ${JSON.stringify(card)}`);
       await addLabels(octokit, tempContext, ['WIP']);
+      tempContext.payload.issue.labels.push('WIP');
       await moveCardsMatchingIssueToCorrectColumn(octokit, tempContext);
     }
   }
