@@ -448,7 +448,7 @@ const moveCardsMatchingIssueToCorrectColumn = async (octokit, context) => {
       console.log('>> move card to backlog column');
       await moveCardsMatchingIssueInBoardToColumnAtPosition(octokit, context, 'triage', 'backlog', 'bottom');
     }
-    const hasMatchingBranches = issueHasMatchingBranches(octokit, context);
+    const hasMatchingBranches = await issueHasMatchingBranches(octokit, context);
     if (hasMatchingBranches && !getIssueLabels(octokit, context).includes('WIP')) {
       await addLabels(octokit, context, ['WIP']);
       await moveCardsMatchingIssueInBoardToColumnAtPosition(octokit, context, 'triage', 'WIP', 'bottom');
