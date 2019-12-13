@@ -143,6 +143,7 @@ const addComment = async (graphql, context, comment) => {
   );
   console.log(`foobar: ${JSON.stringify(foobar)}`);
   console.log(`     - github.issues.createComment completed`);
+  foomanchu.fakeError();
 }
 
 const getProjectBoards = async (octokit, context) => {
