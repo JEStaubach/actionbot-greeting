@@ -112,12 +112,36 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
 const addComment = async (octokit, context, comment) => {
   console.log(`   ~ addComment: comment="${comment}"`)
   console.log(`     + github.issues.createComment`);
+  /*
   await octokit.issues.createComment({
     owner: context.payload.repository.owner.login,
     repo: context.payload.repository.name,
     issue_number: context.issue.number,
     body: comment,
   });
+  */
+  const foobar = await octokit.graphql(
+    `
+      query($owner: String!, $repo: String!) {
+        repositories(owner: $owner, name: $repo) {
+          issues(last: 3) {
+            edges {
+              node {
+                title
+              }
+            }
+          }
+        }
+      }
+    `,
+    {
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
+      issue_number: context.issue.number,
+      body: comment,
+    }
+  );
+  console.log(`foobar: ${JSON.stringify(foobar)}`);
   console.log(`     - github.issues.createComment completed`);
 }
 
