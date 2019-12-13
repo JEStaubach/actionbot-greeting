@@ -123,7 +123,7 @@ const addComment = async (graphql, context, comment) => {
   const foobar = await graphql(
     `
       query($owner: String!, $repo: String!) {
-        repositories(owner: $owner, name: $repo) {
+        repository(owner: $owner, name: $repo) {
           issues(last: 3) {
             edges {
               node {
