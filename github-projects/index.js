@@ -109,7 +109,7 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
   };
 }
 
-const addComment = async (octokit, context, comment) => {
+const addComment = async (graphql, context, comment) => {
   console.log(`   ~ addComment: comment="${comment}"`)
   console.log(`     + github.issues.createComment`);
   /*
@@ -120,7 +120,7 @@ const addComment = async (octokit, context, comment) => {
     body: comment,
   });
   */
-  const foobar = await octokit.graphql(
+  const foobar = await graphql(
     `
       query($owner: String!, $repo: String!) {
         repositories(owner: $owner, name: $repo) {
