@@ -137,7 +137,7 @@ const addComment = async (graphql, context, comment) => {
   console.log(`queryResult: ${JSON.stringify(queryResult)}`);
   const mutationResult = await graphql(
     `mutation($subjectId: ID!, $body: String!) {
-      addComment(input: {subjectId: $subjectId, body: $body) {
+      addComment(input: {subjectId: $subjectId, body: $body}) {
         commentEdge {
           node {
             id
