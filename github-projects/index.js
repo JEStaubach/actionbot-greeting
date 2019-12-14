@@ -121,7 +121,7 @@ const addComment = async (graphql, context, comment) => {
   });
   */
   const queryResult = await graphql(
-    `query($owner: String!, $repo: String!, $issue_number Int!) {
+    `query($owner: String!, $repo: String!, $issue_number: Int!) {
       repository(owner: $owner, name: $repo) {
         issue(number:$issue_number) {
           id
