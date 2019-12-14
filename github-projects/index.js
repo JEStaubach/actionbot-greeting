@@ -132,9 +132,9 @@ const addComment = async (graphql, context, comment) => {
       owner: context.payload.repository.owner.login,
       repo: context.payload.repository.name,
       issue_number: context.issue.number,
-      // body: ,
     }
   );
+  console.log(`queryResult: ${JSON.stringify(queryResult)}`);
   const mutationResult = await graphql(
     `mutation($subjectId: ID!, $body: String!) {
       addComment(input: {subjectId: $subjectId, body: $body) {
@@ -146,7 +146,7 @@ const addComment = async (graphql, context, comment) => {
         }
       }
     }`, {
-      subjectId: queryResult.data.repository.issue.id,
+      subjectId: queryResult.repository.issue.id,
       body: comment,
     }
   );
