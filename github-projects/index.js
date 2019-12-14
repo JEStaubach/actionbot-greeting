@@ -112,6 +112,7 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
 const addComment = async (graphql, context, comment) => {
   console.log(`   ~ addComment: comment="${comment}"`)
   console.log(`     + github.issues.createComment`);
+  console.log(` cx: ${JSON.stringify(cx)}`);
   /*
   await octokit.issues.createComment({
     owner: context.payload.repository.owner.login,
