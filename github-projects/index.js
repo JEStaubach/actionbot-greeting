@@ -120,28 +120,37 @@ const addComment = async (graphql, context, comment) => {
     body: comment,
   });
   */
-  const foobar = await graphql(
-    `
-      query($owner: String!, $repo: String!) {
-        repository(owner: $owner, name: $repo) {
-          issues(last: 3) {
-            edges {
-              node {
-                title
-              }
-            }
-          }
+  const queryResult = await graphql(
+    `query($owner: String!, $repo: String!, $issue_number Int!) {
+      repository(owner: $owner, name: $repo) {
+        issue(number:$issue_number) {
+          id
         }
       }
-    `,
-    {
+    }`, {
       owner: context.payload.repository.owner.login,
       repo: context.payload.repository.name,
       issue_number: context.issue.number,
+      // body: ,
+    }
+  );
+  const mutationResult = await graphql(
+    `mutation($subjectId: ID!, $body: String!) {
+      addComment(input: {subjectId: $subjectId, body: $body) {
+        commentEdge {
+          node {
+            id
+            body
+          }
+        }
+      }
+    }`, {
+      subjectId: queryResult.data.repository.issue.id,
       body: comment,
     }
   );
-  console.log(`foobar: ${JSON.stringify(foobar)}`);
+
+  console.log(`foobar: ${JSON.stringify(mutationResult)}`);
   console.log(`     - github.issues.createComment completed`);
   foomanchu.fakeError();
 }
