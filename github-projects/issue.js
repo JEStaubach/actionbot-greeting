@@ -43,6 +43,6 @@ function configure(graphql, context) {
 }
 
 
-module.export = {
+module.exports = {
   configure
 }
