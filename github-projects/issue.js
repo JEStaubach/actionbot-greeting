@@ -20,7 +20,7 @@ function configure(graphql, context) {
   }
 
   async function commentOnIssue(comment) {
-    //const subjectId = await _getIssueId();
+    const subjectId = await _getIssueId();
     const mutationResult = await graphql(
       `
         mutation($subjectId: ID!, $body: String!) {
@@ -35,7 +35,7 @@ function configure(graphql, context) {
         }
       `,
       {
-        subjectId: context.issue.node_id,
+        subjectId: subjectId,
         body: comment,
       },
     );
