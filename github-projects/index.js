@@ -12,7 +12,7 @@ const getProjectLabels = async (octokit, context) => {
   console.log(`     - octokit.issues.listLabelsForRepo completed`);
   console.log(`       labels: ${JSON.stringify(labels)}`);
   return labels.data ? labels.data : [];
-}
+};
 
 const createOnceLabels = async (octokit, context, labelsParam) => {
   const labels = defaultLabels;
@@ -27,12 +27,12 @@ const createOnceLabels = async (octokit, context, labelsParam) => {
         owner: context.payload.repository.owner.login,
         repo: context.payload.repository.name,
         name: repoLabel.name,
-      })
+      });
     }
   }
   for (label of labels) {
     console.log(`label: ${JSON.stringify(label)}`);
-    const matchingLabels = repoLabels.filter(repoLabel => (label.name === repoLabel.name));
+    const matchingLabels = repoLabels.filter(repoLabel => label.name === repoLabel.name);
     if (matchingLabels.length === 0) {
       console.log(`creating label ${label.name}`);
       await octokit.issues.createLabel({
@@ -43,7 +43,9 @@ const createOnceLabels = async (octokit, context, labelsParam) => {
         description: label.description,
       });
     } else {
-      console.log(`ml: ${matchingLabels[0].name}, ${matchingLabels[0].color}, ${matchingLabels[0].description}`);
+      console.log(
+        `ml: ${matchingLabels[0].name}, ${matchingLabels[0].color}, ${matchingLabels[0].description}`,
+      );
       console.log(`ls: ${label.name}, ${label.color}, ${label.description}`);
       if (matchingLabels[0].color !== label.color || matchingLabels[0].description !== label.description) {
         console.log(`updating label ${label.name}`);
@@ -70,14 +72,12 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
   for (repoBoard of repoBoards) {
     console.log(`repoBoard: ${JSON.stringify(repoBoard)}`);
     const cols = await getBoardColumns(octokit, context, repoBoard);
-    existingBoards.push({board: repoBoard, columns: cols.data});
+    existingBoards.push({ board: repoBoard, columns: cols.data });
   }
   console.log(`existing boards: ${JSON.stringify(existingBoards)}`);
   for (board of boards) {
     console.log(`board: ${board.board}`);
-    let matchingBoards = existingBoards.filter( existingBoard => (
-      existingBoard.board.name === board.board
-    ));
+    let matchingBoards = existingBoards.filter(existingBoard => existingBoard.board.name === board.board);
     console.log(`matchingBoards: ${JSON.stringify(matchingBoards)}`);
     if (!matchingBoards.length > 0) {
       console.log(`creating board ${board.board}`);
@@ -93,9 +93,9 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
       console.log(`matchingBoard: ${JSON.stringify(matchingBoard)}`);
       for (column of board.columns) {
         console.log(`column: ${JSON.stringify(column)}`);
-        let matchingColumns = matchingBoard.columns.filter( existingColumn => (
-          existingColumn.name === column.column
-        ));
+        let matchingColumns = matchingBoard.columns.filter(
+          existingColumn => existingColumn.name === column.column,
+        );
         if (!matchingColumns.length > 0) {
           console.log(`neededColumn: ${JSON.stringify(column.column)}`);
           console.log(`creating column ${column.column} in board ${matchingBoard.board.name}`);
@@ -103,61 +103,19 @@ const createOnceBoards = async (octokit, context, boardsParam) => {
             project_id: matchingBoard.board.id,
             name: column.column,
           });
-        };
-      };
-    };
-  };
-}
+        }
+      }
+    }
+  }
+};
 
 const addComment = async (graphql, context, comment) => {
-  console.log(`   ~ addComment: comment="${comment}"`)
-  console.log(`     + github.issues.createComment`);
-  console.log(` cx: ${JSON.stringify(context)}`);
+  console.log(`   ~ addComment: comment="${comment}"`);
   const issue = require('./issue').configure(graphql, context);
   const mutationResult = await issue.commentOnIssue(comment);
-  /*
-  await octokit.issues.createComment({
-    owner: context.payload.repository.owner.login,
-    repo: context.payload.repository.name,
-    issue_number: context.issue.number,
-    body: comment,
-  });
-
-  const queryResult = await graphql(
-    `query($owner: String!, $repo: String!, $issue_number: Int!) {
-      repository(owner: $owner, name: $repo) {
-        issue(number:$issue_number) {
-          id
-        }
-      }
-    }`, {
-      owner: context.payload.repository.owner.login,
-      repo: context.payload.repository.name,
-      issue_number: context.issue.number,
-    }
-  );
-  console.log(`queryResult: ${JSON.stringify(queryResult)}`);
-  const mutationResult = await graphql(
-    `mutation($subjectId: ID!, $body: String!) {
-      addComment(input: {subjectId: $subjectId, body: $body}) {
-        commentEdge {
-          node {
-            id
-            body
-          }
-        }
-      }
-    }`, {
-      subjectId: queryResult.repository.issue.id,
-      body: comment,
-    }
-  );
-  */
-
-  console.log(`foobar: ${JSON.stringify(mutationResult)}`);
-  console.log(`     - github.issues.createComment completed`);
+  console.log(`   ~ addComment Result: ${JSON.stringify(mutationResult)}`);
   foomanchu.fakeError();
-}
+};
 
 const getProjectBoards = async (octokit, context) => {
   console.log(`   ~ getProjectBoards`);
@@ -169,7 +127,7 @@ const getProjectBoards = async (octokit, context) => {
   console.log(`     - octokit.projects.listForRepo completed`);
   console.log(`       boards: ${JSON.stringify(projects.data.map(board => board.name))}`);
   return projects.data ? projects.data : [];
-}
+};
 
 const getProjectBoard = async (octokit, context, boardName) => {
   console.log(`   ~ getProjectBoard: boardName="${boardName}"`);
@@ -324,7 +282,13 @@ const findInsertionPoint = async (octokit, context, boardName, columnName) => {
   return `after:${cardId}`;
 };
 
-const moveCardsMatchingIssueInBoardToColumnAtPosition = async (octokit, context, boardName, columnName, pos) => {
+const moveCardsMatchingIssueInBoardToColumnAtPosition = async (
+  octokit,
+  context,
+  boardName,
+  columnName,
+  pos,
+) => {
   console.log(`moveCardsMatchingIssueInBoardToColumnAtPosition`);
   await moveCardsMatchingIssueInBoardToBoardColumnAtPosition(
     octokit,
@@ -368,7 +332,7 @@ const moveCardsMatchingIssueToCorrectColumn = async (octokit, context) => {
     console.log(`<< has duplicate label`);
     console.log('>> move card to declined board duplicate column @bottom');
     await moveCardsMatchingIssueInBoardToBoardColumnAtPosition(
-      octokit, 
+      octokit,
       context,
       ['triage', 'questions', 'declined'],
       'declined',
@@ -473,7 +437,13 @@ const moveCardsMatchingIssueToCorrectColumn = async (octokit, context) => {
     } else if (Object.keys(conventions).filter(key => issueLabels.includes(key)).length === 0) {
       console.log('<< has no conventions key');
       console.log('>> move card to awaiting review column');
-      await moveCardsMatchingIssueInBoardToColumnAtPosition(octokit, context, 'triage', 'awaiting review', 'bottom');
+      await moveCardsMatchingIssueInBoardToColumnAtPosition(
+        octokit,
+        context,
+        'triage',
+        'awaiting review',
+        'bottom',
+      );
     } else if (issueLabels.includes('WIP')) {
       console.log('<< has WIP label');
       console.log('>> move card to WIP column');
@@ -530,9 +500,24 @@ const adjustCommentedLabel = async (octokit, context) => {
   console.log('issue_comment.created');
   if (context.payload.comment.user.login !== 'github-actions[bot]') {
     console.log('<< comment from !== github-actions[bot]');
-    const isInMoreColumn = await isCardMatchingIssueInBoardColumn(octokit, context, 'triage', 'more info please');
-    const isInQuestionColumn = await isCardMatchingIssueInBoardColumn(octokit, context, 'questions', 'question');
-    const isInRespondedColumn = await isCardMatchingIssueInBoardColumn(octokit, context, 'questions', 'responded');
+    const isInMoreColumn = await isCardMatchingIssueInBoardColumn(
+      octokit,
+      context,
+      'triage',
+      'more info please',
+    );
+    const isInQuestionColumn = await isCardMatchingIssueInBoardColumn(
+      octokit,
+      context,
+      'questions',
+      'question',
+    );
+    const isInRespondedColumn = await isCardMatchingIssueInBoardColumn(
+      octokit,
+      context,
+      'questions',
+      'responded',
+    );
     if (isInMoreColumn) {
       console.log('<< issue in more info please column');
       if (!commenterInIssueAssignees(octokit, context)) {
@@ -607,7 +592,7 @@ const adjustLabelsToConventions = async (octokit, context) => {
     console.log('>> remove other convents, more info please, and commented labels');
     await removeLabels(octokit, context, [...otherConventionLabels, 'more info please', 'commented']);
   }
-}
+};
 
 const adjustTitleToConventions = async (octokit, context) => {
   console.log(`on issues.labeled`);
@@ -649,7 +634,7 @@ const getForkBranches = async (octokit, context, fork) => {
 
 const getBranchesOfForks = async (octokit, context) => {
   console.log(`getBranchesOfForks`);
-  const forks = await getForks(octokit,context);
+  const forks = await getForks(octokit, context);
   let allBranches = [];
   for (const fork of forks) {
     const branches = await getForkBranches(octokit, context, fork);
@@ -691,7 +676,7 @@ const getAllBranchesMatchingIssue = async (_, context, branches) => {
   });
 };
 
-const getRepoBranches = async(octokit, context) => {
+const getRepoBranches = async (octokit, context) => {
   const branches = await getAllBranches(octokit, context);
   console.log(`allBranches:`);
   for (const branch of branches) {
@@ -701,7 +686,7 @@ const getRepoBranches = async(octokit, context) => {
     }
   }
   return branches;
-}
+};
 
 const getRepoIssues = async (octokit, context) => {
   console.log(`getRepoIssues`);
@@ -712,7 +697,7 @@ const getRepoIssues = async (octokit, context) => {
   });
   console.log(`issues: ${issues}`);
   return issues;
-}
+};
 
 const getIssuesWithMatchingBranches = async (octokit, context, issues, branches) => {
   const allIssuesWithMatchingBranches = [];
@@ -731,7 +716,7 @@ const getIssuesWithMatchingBranches = async (octokit, context, issues, branches)
 const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
   console.log(`on schedule`);
   console.log(`running scheduled activiy: tagIssueWithBranchAsWIP`);
-  const [ owner, repository ] = repo.split('/');
+  const [owner, repository] = repo.split('/');
   const tempContext = context;
   tempContext.payload.repository = {
     owner: {
@@ -741,14 +726,19 @@ const tagIssueWithBranchAsWIP = async (octokit, context, repo) => {
   };
   const issues = await getRepoIssues(octokit, tempContext);
   const branches = await getRepoBranches(octokit, tempContext);
-  const allIssuesWithMatchingBranches = await getIssuesWithMatchingBranches(octokit, tempContext, issues, branches);
+  const allIssuesWithMatchingBranches = await getIssuesWithMatchingBranches(
+    octokit,
+    tempContext,
+    issues,
+    branches,
+  );
   for (const issueWithMatchingBranch of allIssuesWithMatchingBranches) {
     console.log(`${JSON.stringify(issueWithMatchingBranch)}`);
     tempContext.payload.issue = issueWithMatchingBranch;
     await addLabels(octokit, tempContext, ['WIP']);
     tempContext.payload.issue.labels.push('WIP');
     await moveCardsMatchingIssueToCorrectColumn(octokit, tempContext);
-  } 
+  }
 };
 
 const getIssuesNotInAProjectBoard = async (octokit, context) => {
@@ -781,7 +771,7 @@ const getIssuesNotInAProjectBoard = async (octokit, context) => {
 const createCardsForMissingIssues = async (octokit, context, repo) => {
   console.log(`on schedule`);
   console.log(`running scheduled activiy: createCardsForMissingIssues`);
-  const [ owner, repository ] = repo.split('/');
+  const [owner, repository] = repo.split('/');
   const tempContext = context;
   tempContext.payload.repository = {
     owner: {
@@ -801,7 +791,7 @@ const moveAllCardsToCorrectPosition = async (octokit, context, repo) => {
   await createCardsForMissingIssues(octokit, context, repo);
   console.log(`on schedule`);
   console.log(`running scheduled activiy: moveAllCardsToCorrectColumn`);
-  const [ owner, repository ] = repo.split('/');
+  const [owner, repository] = repo.split('/');
   const tempContext = context;
   tempContext.payload.repository = {
     owner: {
@@ -814,7 +804,7 @@ const moveAllCardsToCorrectPosition = async (octokit, context, repo) => {
     tempContext.payload.issue = issue;
     await moveCardsMatchingIssueToCorrectColumn(octokit, tempContext);
   }
-}
+};
 
 const markIssueMatchingBranchAsWIP = async (octokit, context, repo, ref) => {
   console.log(`on create branch: markIssueMatchingBranchAsWIP`);
@@ -836,7 +826,7 @@ const markIssueMatchingBranchAsWIP = async (octokit, context, repo, ref) => {
   if (Object.values(conventions).includes(convention)) {
     console.log(`<< conventional branch name ${convention}`);
     console.log(`<< issueNumber ${issueNumber}`);
-    tempContext.payload.issue = { number: Number(issueNumber), };
+    tempContext.payload.issue = { number: Number(issueNumber) };
     const cards = await getBoardCardsMatchingIssueNumber(octokit, tempContext, 'triage', Number(issueNumber));
     for (const card of cards) {
       console.log(`matching card: ${JSON.stringify(card)}`);
