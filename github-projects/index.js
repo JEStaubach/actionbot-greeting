@@ -113,6 +113,8 @@ const addComment = async (graphql, context, comment) => {
   console.log(`   ~ addComment: comment="${comment}"`)
   console.log(`     + github.issues.createComment`);
   console.log(` cx: ${JSON.stringify(context)}`);
+  const issue = require('./issue').configure(graphql, context);
+  const mutationResult = await issue.commentOnIssue(comment);
   /*
   await octokit.issues.createComment({
     owner: context.payload.repository.owner.login,
@@ -120,7 +122,7 @@ const addComment = async (graphql, context, comment) => {
     issue_number: context.issue.number,
     body: comment,
   });
-  */
+
   const queryResult = await graphql(
     `query($owner: String!, $repo: String!, $issue_number: Int!) {
       repository(owner: $owner, name: $repo) {
@@ -150,6 +152,7 @@ const addComment = async (graphql, context, comment) => {
       body: comment,
     }
   );
+  */
 
   console.log(`foobar: ${JSON.stringify(mutationResult)}`);
   console.log(`     - github.issues.createComment completed`);
